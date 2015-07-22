@@ -29,49 +29,58 @@ namespace ConsoleApp
 
     class Program
     {
-
+        class CustomData
+        {
+            public int Name { get; set; }
+            public long CreationTime { get; set; }
+            public int ThreadNum { get; set; }
+        }
         public static void Main()
         {
 
             try
             {
+
                 //readMsg();
                 //writeMsg();
                 //HandleMqMsg();
-                Action<object> action = (object obj) =>
+                var tokenSource2 = new CancellationTokenSource();
+                CancellationToken ct = tokenSource2.Token;
+
+                var task = Task.Factory.StartNew(() =>
                 {
-                    Console.WriteLine("Task={0}, obj={1}, Thread={2}", Task.CurrentId, obj.ToString(), Thread.CurrentThread.ManagedThreadId);
-                };
 
-                // Construct an unstarted task
-                Task t1 = new Task(action, "alpha");
+                    // Were we already canceled?
+                    ct.ThrowIfCancellationRequested();
 
-                // Cosntruct a started task
-                Task t2 = Task.Factory.StartNew(action, "beta");
+                    bool moreToDo = true;
+                    while (moreToDo)
+                    {
+                        // Poll on this property if you have to do
+                        // other cleanup before throwing.
+                        if (ct.IsCancellationRequested)
+                        {
+                            // Clean up here, then...
+                            ct.ThrowIfCancellationRequested();
+                        }
 
-                // Block the main thread to demonstate that t2 is executing
-                t2.Wait();
+                    }
+                }, tokenSource2.Token); // Pass same token to StartNew.
 
-                // Launch t1 
-                t1.Start();
+                tokenSource2.Cancel();
 
-                Console.WriteLine("t1 has been launched. (Main Thread={0})", Thread.CurrentThread.ManagedThreadId);
+                // Just continue on this thread, or Wait/WaitAll with try-catch:
+                try
+                {
+                    task.Wait();
+                }
+                catch (AggregateException e)
+                {
+                    foreach (var v in e.InnerExceptions)
+                        Console.WriteLine(e.Message + " " + v.Message);
+                }
 
-                // Wait for the task to finish.
-                // You may optionally provide a timeout interval or a cancellation token
-                // to mitigate situations when the task takes too long to finish.
-                t1.Wait();
-
-                // Construct an unstarted task
-                Task t3 = new Task(action, "gamma");
-
-                // Run it synchronously
-                t3.RunSynchronously();
-
-                // Although the task was run synchrounously, it is a good practice to wait for it which observes for 
-                // exceptions potentially thrown by that task.
-                t3.Wait();
-
+                Console.ReadKey();
 
             }
             catch (Exception ex)
