@@ -20,6 +20,8 @@ namespace ConsoleApp
         private Queue _queue = Queue.Synchronized(new Queue());
         private int _maxLength = 10000;
         private object _queueReadLock = new object();
+        private object _newConnectionLock = new object();
+        private TimeSpan _reconnectionInterval = TimeSpan.FromSeconds(5);
 
         private Thread _sendMsg = null;
         private readonly List<Thread> _rcvMsgThreadListInExclusiveMode = new List<Thread>();
@@ -28,6 +30,8 @@ namespace ConsoleApp
 
         private readonly int MqConcurrentSizeInSharingMode = 5;
         private readonly int MqConcurrentSizeInExclusiveMode = 2;
+
+
         public static MqRepository Instance
         {
             get
@@ -46,26 +50,6 @@ namespace ConsoleApp
 
             NewConnection();
             EnableSendMessage();
-
-            Thread t = new Thread(() =>
-            {
-                while (true)
-                {
-                    Thread.Sleep(5000);
-                    int run = 0;
-                    int idle = 0;
-                    _rcvMsgThreadListInExclusiveMode.ForEach(p =>
-                    {
-                        if (p.ThreadState == ThreadState.Running)
-                            run++;
-                        else
-                            idle++;
-                    });
-                    Console.WriteLine("~~~running:" + run + ", idle:" + idle);
-                }
-            });
-
-            t.Start();
         }
         /// <summary>
         /// 启动消息发送支持
@@ -133,25 +117,28 @@ namespace ConsoleApp
         /// <summary>
         /// 创建与消息队列的连接
         /// </summary>
-        private void NewConnection()
+        /// <returns>是否创建了新连接</returns>
+        private bool NewConnection()
         {
-            if (_connection == null)
+            if (_connection == null || !_connection.IsOpen)
             {
-                lock (_queue)
+                lock (_newConnectionLock)
                 {
-                    if (_connection == null)
+                    if (_connection == null || !_connection.IsOpen)
                     {
+                        MqServerRepository.ConnectionInfo info = MqServerRepository.Instance.Next();
                         try
                         {
                             var factory = new ConnectionFactory();
-                            factory.AutomaticRecoveryEnabled = true;
-                            factory.TopologyRecoveryEnabled = true;
-                            factory.HostName = "localhost";
-                            factory.UserName = "mq";
-                            factory.Password = "mq";
+                            factory.AutomaticRecoveryEnabled = false;
+                            factory.TopologyRecoveryEnabled = false;
+                            factory.HostName = info.HostName;
+                            factory.Port = info.Port;
+                            factory.UserName = info.UserName;
+                            factory.Password = info.Password;
 
                             _connection = factory.CreateConnection();
-
+                            return true;
                         }
                         catch (Exception ex)
                         {
@@ -161,6 +148,8 @@ namespace ConsoleApp
                     }
                 }
             }
+
+            return false;
         }
         /// <summary>
         /// 发送消息到MQ服务器
@@ -189,67 +178,91 @@ namespace ConsoleApp
         private void SendMessage()
         {
             IModel channel = null;
+            IBasicProperties properties = null;
             try
             {
-                if (_connection == null || !_connection.IsOpen)
-                    NewConnection();
-
-                if (_connection == null)
-                {
-                    LogHelper.Fatal("IConnection为空，消息接收线程将退出。");
-                    return;
-                }
-
-                //创建通道
-                channel = _connection.CreateModel();
-
-                //设置消息持久化
-                var properties = channel.CreateBasicProperties();
-                properties.DeliveryMode = 2;
-                properties.SetPersistent(true);
-
                 while (true)
                 {
-                    object o = null;
-
-                    if (_queue.Count == 0)
-                    {
-                        lock (_queueReadLock)
-                        {
-                            Monitor.Wait(_queueReadLock);
-                        }
-                    }
-                    //从内存队列中取消息
-                    o = _queue.Dequeue();
-
-                    if (o == null)
-                        continue;
-
-                    string[] array = o.ToString().Split(new char[] { ',' }, 2);
-                    if (array.Length != 2)
-                    {
-                        LogHelper.Fatal("RabbitMQ生产者收到未识别的消息：" + o);
-                        continue;
-                    }
-
-                    string queueName = array[0];
-                    string json = array[1];
                     try
                     {
-                        //创建队列
-                        channel.QueueDeclare(queueName.ToString(), true, false, false, null);
-                        //发布消息
-                        byte[] body = Encoding.UTF8.GetBytes(json);
-                        channel.BasicPublish("", queueName.ToString(), properties, body);
+                        if (_connection == null || !_connection.IsOpen)
+                            NewConnection();
+
+                        //连接失败时，5秒后重试
+                        if (_connection == null)
+                        {
+                            Thread.Sleep(_reconnectionInterval);
+                            continue;
+                        }
+
+                        if (channel == null || channel.IsClosed)
+                        {
+                            //创建通道
+                            try
+                            {
+                                channel = _connection.CreateModel();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.Fatal("RabbitMQ消息生产者创建通道失败：" + ex.Message);
+                                Thread.Sleep(_reconnectionInterval);
+                                continue;
+                            }
+
+
+                            //设置消息持久化
+                            properties = channel.CreateBasicProperties();
+                            properties.DeliveryMode = 2;
+                            properties.SetPersistent(true);
+                        }
+
+
+                        object o = null;
+
+                        if (_queue.Count == 0)
+                        {
+                            lock (_queueReadLock)
+                            {
+                                Monitor.Wait(_queueReadLock);
+                            }
+                        }
+                        //从内存队列中取消息
+                        o = _queue.Dequeue();
+                        lock (_queue.SyncRoot)
+                        {
+                            Monitor.Pulse(_queue.SyncRoot);
+                        }
+
+                        if (o == null)
+                            continue;
+
+                        string[] array = o.ToString().Split(new char[] { ',' }, 2);
+                        if (array.Length != 2)
+                        {
+                            LogHelper.Fatal("RabbitMQ生产者收到未识别的消息：" + o);
+                            continue;
+                        }
+
+                        string queueName = array[0];
+                        string json = array[1];
+                        try
+                        {
+                            //创建队列
+                            channel.QueueDeclare(queueName.ToString(), true, false, false, null);
+                            //发布消息
+                            byte[] body = Encoding.UTF8.GetBytes(json);
+                            channel.BasicPublish("", queueName.ToString(), properties, body);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.Fatal("RabbitMQ生产者发送消息失败。消息内容：" + (o == null ? "" : o.ToString()), ex);
+                        }
+
+
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.Fatal("RabbitMQ生产者发送消息失败。消息内容：" + (o == null ? "" : o.ToString()), ex);
-                    }
-
-                    lock (_queue.SyncRoot)
-                    {
-                        Monitor.Pulse(_queue.SyncRoot);
+                        LogHelper.Fatal("RabbitMQ生产者发送消息失败。" + ex.Message);
                     }
                 }
 
@@ -331,59 +344,60 @@ namespace ConsoleApp
         private void ReceiveMessage(MqQueueName queueName, Action<string> action)
         {
             IModel channel = null;
+            QueueingBasicConsumer consumer = null;
+            BasicDeliverEventArgs ea = null;
+            string message = "";
+
             try
             {
-                if (_connection == null || !_connection.IsOpen)
-                    NewConnection();
-
-                if (_connection == null)
-                {
-                    LogHelper.Fatal("IConnection为空，消息接收线程将退出。");
-                    return;
-                }
-
-                //创建通道
-                channel = _connection.CreateModel();
-
-                //创建队列
-                channel.QueueDeclare(queueName.ToString(), true, false, false, null);
-
-                channel.BasicQos(0, 1, false);
-                var consumer = new QueueingBasicConsumer(channel);
-                channel.BasicConsume(queueName.ToString(), false, consumer);
-                BasicDeliverEventArgs ea = null;
                 while (true)
                 {
-                    string message = "";
                     try
                     {
-                        if (channel.IsClosed)
+                        if (_connection == null || !_connection.IsOpen)
+                            NewConnection();
+
+                        //连接失败时，5秒后重试
+                        if (_connection == null)
                         {
-                            Thread.Sleep(100);
+                            Thread.Sleep(_reconnectionInterval);
                             continue;
                         }
 
-                        //连接断开之后，重新连接时，需要重新打开队列
-                        if (consumer.ShutdownReason != null && channel.IsOpen)
+                        if (channel == null || channel.IsClosed)
                         {
-                            channel.Close();
+                            //创建通道
                             channel = _connection.CreateModel();
+
+                            //创建队列
                             channel.QueueDeclare(queueName.ToString(), true, false, false, null);
                             channel.BasicQos(0, 1, false);
+
+                            //创建消费者
                             consumer = new QueueingBasicConsumer(channel);
                             channel.BasicConsume(queueName.ToString(), false, consumer);
                         }
 
-                        consumer.Queue.Dequeue(100, out ea);
-                        message = Encoding.UTF8.GetString(ea.Body);
-                        //处理消息
-                        action(message);
-                        //发送确认回执
-                        channel.BasicAck(ea.DeliveryTag, false);
+
+                        try
+                        {
+                            //获取消息
+                            consumer.Queue.Dequeue(100, out ea);
+                            message = Encoding.UTF8.GetString(ea.Body);
+                            //处理消息
+                            action(message);
+                            //发送确认回执
+                            channel.BasicAck(ea.DeliveryTag, false);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.Fatal(string.Format("RabbitMQ消费者处理消息失败。消息：queueName={0},message={1}。", queueName, message), ex);
+                        }
+
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.Fatal(string.Format("RabbitMQ消费者处理消息失败。消息：queueName={0},message={1}。", queueName, message), ex);
+                        LogHelper.Fatal("RabbitMQ消费者处理消息失败。" + ex.Message);
                     }
                 }
             }
@@ -424,62 +438,71 @@ namespace ConsoleApp
             IModel channel = null;
             try
             {
-                if (_connection == null || !_connection.IsOpen)
-                    NewConnection();
-
-                if (_connection == null)
-                {
-                    LogHelper.Fatal("IConnection为空，消息接收线程将退出。");
-                    return;
-                }
-
-                //创建通道
-                channel = _connection.CreateModel();
-
                 while (true)
                 {
-                    foreach (var item in array)
+                    try
                     {
-                        if (channel.IsClosed)
+                        if (_connection == null || !_connection.IsOpen)
+                            NewConnection();
+
+                        //连接失败时，5秒后重试
+                        if (_connection == null)
                         {
-                            Thread.Sleep(100);
+                            Thread.Sleep(_reconnectionInterval);
                             continue;
                         }
 
-                        MqQueueName queueName = (MqQueueName)item;
-
-                        Action<string> action = null;
-                        if (!_msgReceiverDic.ContainsKey(queueName))
-                            continue;
-
-                        action = _msgReceiverDic[queueName];
-
-                        string message = "";
-                        try
+                        if (channel == null || channel.IsClosed)
                         {
+                            channel = _connection.CreateModel();
+                        }
 
 
-                            //创建队列
-                            channel.QueueDeclare(queueName.ToString(), true, false, false, null);
-                            channel.BasicQos(0, 1, false);
+                        foreach (var item in array)
+                        {
+                            if (channel.IsClosed)
+                            {
+                                Thread.Sleep(100);
+                                continue;
+                            }
 
-                            var ea = channel.BasicGet(queueName.ToString(), false);
-                            if (ea == null)
+                            MqQueueName queueName = (MqQueueName)item;
+
+                            Action<string> action = null;
+                            if (!_msgReceiverDic.ContainsKey(queueName))
                                 continue;
 
-                            message = Encoding.UTF8.GetString(ea.Body);
-                            //处理消息
-                            action(message);
-                            //发送确认回执
-                            channel.BasicAck(ea.DeliveryTag, false);
-                        }
-                        catch (Exception ex)
-                        {
-                            LogHelper.Fatal("RabbitMQ消费者处理消息失败。消息内容：" + queueName + "," + message, ex);
-                        }
-                    }
+                            action = _msgReceiverDic[queueName];
 
-                    Thread.Sleep(1);
+                            string message = "";
+                            try
+                            {
+                                //创建队列
+                                channel.QueueDeclare(queueName.ToString(), true, false, false, null);
+                                channel.BasicQos(0, 1, false);
+
+                                var ea = channel.BasicGet(queueName.ToString(), false);
+                                if (ea == null)
+                                    continue;
+
+                                message = Encoding.UTF8.GetString(ea.Body);
+                                //处理消息
+                                action(message);
+                                //发送确认回执
+                                channel.BasicAck(ea.DeliveryTag, false);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.Fatal("RabbitMQ消费者处理消息失败。消息内容：" + queueName + "," + message, ex);
+                            }
+                        }
+
+                        Thread.Sleep(1);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.Fatal("RabbitMQ消费者处理消息失败。" + ex.Message);
+                    }
                 }
             }
             catch (Exception ex)
@@ -513,5 +536,74 @@ namespace ConsoleApp
         ClubPost,
         ForumTopic,
         Attention,
+    }
+
+    public class MqServerRepository
+    {
+        private const int DefautPort = -1;
+        private List<ConnectionInfo> _list = new List<ConnectionInfo>();
+        private int _currentIndex = 0;
+        private static MqServerRepository _instance = new MqServerRepository();
+        public static MqServerRepository Instance
+        {
+            get
+            {
+                return _instance;
+            }
+        }
+        private MqServerRepository()
+        {
+            AddServer("localhost", "mq", "mq");
+        }
+        private bool ExistServer(string hostName)
+        {
+            if (string.IsNullOrWhiteSpace(hostName))
+                return false;
+            return _list.Exists(p => p.HostName == hostName);
+        }
+        private void AddServer(string hostName, int port, string userName, string password)
+        {
+            if (string.IsNullOrWhiteSpace(hostName))
+                return;
+
+            if (port == 0 || port < -1 || port > 65535)
+                return;
+
+            if (!ExistServer(hostName))
+                _list.Add(new ConnectionInfo() { HostName = hostName, Port = port, UserName = userName, Password = password });
+
+        }
+
+        private void AddServer(string hostName, string userName, string password)
+        {
+            AddServer(hostName, DefautPort, userName, password);
+        }
+
+        private void RemoveServer(string hostName, int port = DefautPort)
+        {
+            ConnectionInfo conn = _list.SingleOrDefault(p => p.HostName == hostName && p.Port == DefautPort);
+            if (conn != null)
+                _list.Remove(conn);
+        }
+
+        public ConnectionInfo Next()
+        {
+            int count = _list.Count;
+            if (count == 0)
+                return null;
+
+            return _list[_currentIndex++ % count];
+        }
+
+        public class ConnectionInfo
+        {
+            public string HostName { get; set; }
+            public int Port { get; set; }
+            public string UserName { get; set; }
+            public string Password { get; set; }
+        }
+
+
+
     }
 }

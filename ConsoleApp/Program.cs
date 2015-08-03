@@ -34,7 +34,6 @@ namespace ConsoleApp
 
             try
             {
-
                 //readMsg();
                 //writeMsg();
                 HandleMqMsg();
@@ -63,10 +62,10 @@ namespace ConsoleApp
                 Console.WriteLine(p);
                 Thread.Sleep(500);
             };
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.Attention, a);
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubPost, a);
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubTopic, a);
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ForumTopic, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.Attention, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubPost, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubTopic, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ForumTopic, a);
 
         }
         class NoName
