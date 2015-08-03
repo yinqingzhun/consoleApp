@@ -29,12 +29,6 @@ namespace ConsoleApp
 
     class Program
     {
-        class CustomData
-        {
-            public int Name { get; set; }
-            public long CreationTime { get; set; }
-            public int ThreadNum { get; set; }
-        }
         public static void Main()
         {
 
@@ -43,45 +37,9 @@ namespace ConsoleApp
 
                 //readMsg();
                 //writeMsg();
-                //HandleMqMsg();
-                var tokenSource2 = new CancellationTokenSource();
-                CancellationToken ct = tokenSource2.Token;
+                HandleMqMsg();
 
-                var task = Task.Factory.StartNew(() =>
-                {
-
-                    // Were we already canceled?
-                    ct.ThrowIfCancellationRequested();
-
-                    bool moreToDo = true;
-                    while (moreToDo)
-                    {
-                        // Poll on this property if you have to do
-                        // other cleanup before throwing.
-                        if (ct.IsCancellationRequested)
-                        {
-                            // Clean up here, then...
-                            ct.ThrowIfCancellationRequested();
-                        }
-
-                    }
-                }, tokenSource2.Token); // Pass same token to StartNew.
-
-                tokenSource2.Cancel();
-
-                // Just continue on this thread, or Wait/WaitAll with try-catch:
-                try
-                {
-                    task.Wait();
-                }
-                catch (AggregateException e)
-                {
-                    foreach (var v in e.InnerExceptions)
-                        Console.WriteLine(e.Message + " " + v.Message);
-                }
-
-                Console.ReadKey();
-
+                //Console.WriteLine(Convert.FromBase64String);
             }
             catch (Exception ex)
             {
@@ -90,17 +48,25 @@ namespace ConsoleApp
 
             Console.Read();
         }
+        private static void Json()
+        {
+
+            string s = "{'a':1,'b':[{'a':1},{'b':2}]}";
+            JObject j = JsonConvert.DeserializeObject<JObject>(s);
+            JToken n = j["b"].Children().AsEnumerable().ToList().First();
+            Console.WriteLine(n["a"]);
+        }
         private static void HandleMqMsg()
         {
             Action<string> a = p =>
             {
                 Console.WriteLine(p);
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             };
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.Attention, a);
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubPost, a);
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubTopic, a);
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ForumTopic, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.Attention, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubPost, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubTopic, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ForumTopic, a);
 
         }
         class NoName
@@ -154,18 +120,23 @@ namespace ConsoleApp
             //Array.ForEach(ps, p => j[p.Name] = p.GetValue(o, null)) as JToken;
             return j;
         }
+        private static IConnection NewConnection()
+        {
+            var factory = new ConnectionFactory();
+            factory.HostName = "localhost";
+            factory.UserName = "mq";
+            factory.Password = "mq";
+            factory.AutomaticRecoveryEnabled = true;
+            factory.TopologyRecoveryEnabled = true;
+            return factory.CreateConnection();
+        }
         private static void writeMsg()
         {
             new Thread(() =>
                {
                    try
                    {
-                       var factory = new ConnectionFactory();
-                       factory.HostName = "localhost";
-                       factory.UserName = "mq";
-                       factory.Password = "mq";
-
-                       using (var connection = factory.CreateConnection())
+                       using (var connection = NewConnection())
                        {
                            using (var channel = connection.CreateModel())
                            {
@@ -175,15 +146,31 @@ namespace ConsoleApp
 
                                //定义持久化队列
                                channel.QueueDeclare("hello", true, false, false, null);
+                               channel.ConfirmSelect();
                                int i = 10;
-                               while (i-- > 0)
+                               while (true)
                                {
                                    string message = "Hello World:" + i;
                                    var body = Encoding.UTF8.GetBytes(message);
-                                   channel.BasicPublish("", "hello2", properties, body);
+                                   try
+                                   {
+                                       channel.BasicPublish("", "hello", properties, body);
+                                       channel.WaitForConfirmsOrDie();
+                                   }
+                                   catch (Exception ex)
+                                   {
+                                       Console.WriteLine(ex.Message);
+                                   }
 
                                    Console.WriteLine("==> {0}", message);
                                    Thread.Sleep(10);
+                                   i--;
+                                   if (i <= 0)
+                                   {
+                                       Console.WriteLine("press any key to continue...");
+                                       Console.ReadKey();
+                                       i = 10;
+                                   }
                                }
                            }
                        }
@@ -202,35 +189,52 @@ namespace ConsoleApp
             {
                 try
                 {
-
-
-                    var factory = new ConnectionFactory();
-                    factory.HostName = "localhost";
-                    factory.UserName = "mq";
-                    factory.Password = "mq";
-                    factory.AutomaticRecoveryEnabled = true;
-                    using (var connection = factory.CreateConnection())
+                    using (var connection = NewConnection())
                     {
-                        using (var channel = connection.CreateModel())
-                        {
-                            //定义持久化队列
-                            channel.QueueDeclare("hello", true, false, false, null);
-                            channel.BasicQos(0, 1, false);
-                            var consumer = new QueueingBasicConsumer(channel);
-                            channel.BasicConsume("hello", false, consumer);
+                        var channel = connection.CreateModel();
 
-                            Console.WriteLine("waiting for message.");
-                            while (true)
+                        //定义持久化队列
+                        channel.QueueDeclare("hello", true, false, false, null);
+                        channel.BasicQos(0, 1, false);
+                        var consumer = new QueueingBasicConsumer(channel);
+                        channel.BasicConsume("hello", false, consumer);
+
+                        Console.WriteLine("waiting for message.");
+                        BasicDeliverEventArgs ea = null;
+                        while (true)
+                        {
+                            try
                             {
-                                var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+                                if (consumer.ShutdownReason != null && channel.IsOpen)
+                                {
+                                    channel.Close();
+                                    channel = connection.CreateModel();
+                                    channel.QueueDeclare("hello", true, false, false, null);
+                                    channel.BasicQos(0, 1, false);
+                                    consumer = new QueueingBasicConsumer(channel);
+                                    channel.BasicConsume("hello", false, consumer);
+                                }
+
+                                ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+
 
                                 var body = ea.Body;
                                 var message = Encoding.UTF8.GetString(body);
                                 Console.WriteLine("<== {0}", message);
-                                Thread.Sleep(4000);
+                                //Thread.Sleep(4000);
+
                                 channel.BasicAck(ea.DeliveryTag, false);
+                                ea = null;
                             }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex);
+                            }
+
+                            Console.WriteLine("press any key to continue...");
+                            Console.ReadKey();
                         }
+
                     }
                 }
                 catch (Exception ex)
