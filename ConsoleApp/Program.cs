@@ -32,11 +32,13 @@ namespace ConsoleApp
         public static void Main()
         {
 
+
             try
             {
+                 
                 //readMsg();
                 //writeMsg();
-                HandleMqMsg();
+                 HandleMqMsg();
 
                 //Console.WriteLine(Convert.FromBase64String);
             }
@@ -62,10 +64,10 @@ namespace ConsoleApp
                 Console.WriteLine(p);
                 Thread.Sleep(500);
             };
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.Attention, a);
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubPost, a);
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubTopic, a);
-            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ForumTopic, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.Attention, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubPost, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubTopic, a);
+            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ForumTopic, a);
 
         }
         class NoName

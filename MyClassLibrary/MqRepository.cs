@@ -28,7 +28,7 @@ namespace ConsoleApp
         private readonly List<Thread> _rcvMsgThreadListInSharingMode = new List<Thread>();
         private readonly Dictionary<MqQueueName, Action<string>> _msgReceiverDic = new Dictionary<MqQueueName, Action<string>>();
 
-        private readonly int MqConcurrentSizeInSharingMode = 5;
+        private readonly int MqConcurrentSizeInSharingMode = 10;
         private readonly int MqConcurrentSizeInExclusiveMode = 2;
 
 
@@ -59,7 +59,7 @@ namespace ConsoleApp
             if (_sendMsg == null || _sendMsg.ThreadState == ThreadState.Stopped)
             {
                 _sendMsg = new Thread(SendMessage);
-                //_sendMsg.IsBackground = true;
+                _sendMsg.IsBackground = true;
                 _sendMsg.Start();
             }
         }
@@ -115,7 +115,7 @@ namespace ConsoleApp
         }
 
         /// <summary>
-        /// 创建与消息队列的连接
+        /// 创建与消息队列服务器的连接
         /// </summary>
         /// <returns>是否创建了新连接</returns>
         private bool NewConnection()
@@ -126,7 +126,9 @@ namespace ConsoleApp
                 {
                     if (_connection == null || !_connection.IsOpen)
                     {
-                        MqServerRepository.ConnectionInfo info = MqServerRepository.Instance.Next();
+                        MqServers.ConnectionInfo info = MqServers.Instance.Next();
+                        if (info == null)
+                            throw new ArgumentNullException("connectionInfo", "连接MQ服务器的信息不存在");
                         try
                         {
                             var factory = new ConnectionFactory();
@@ -142,7 +144,7 @@ namespace ConsoleApp
                         }
                         catch (Exception ex)
                         {
-                            LogHelper.Fatal("创建与MQ服务器的Connection失败。", ex);
+                            LogHelper.Fatal("创建与MQ服务器的Connection失败。" + (ex.InnerException == null ? ex.Message : ex.InnerException.Message));
                         }
 
                     }
@@ -158,13 +160,9 @@ namespace ConsoleApp
         /// <param name="json">JSON格式的消息</param>
         public void SendMessage(MqQueueName queueName, string json)
         {
+            //消息缓存满时，丢弃新消息
             if (_queue.Count > _maxLength)
-            {
-                lock (_queue.SyncRoot)
-                {
-                    Monitor.Wait(_queue.SyncRoot);
-                }
-            }
+                return;
 
             _queue.Enqueue(queueName + "," + json);
             lock (_queueReadLock)
@@ -205,7 +203,6 @@ namespace ConsoleApp
                             catch (Exception ex)
                             {
                                 LogHelper.Fatal("RabbitMQ消息生产者创建通道失败：" + ex.Message);
-                                Thread.Sleep(_reconnectionInterval);
                                 continue;
                             }
 
@@ -228,13 +225,11 @@ namespace ConsoleApp
                         }
                         //从内存队列中取消息
                         o = _queue.Dequeue();
-                        lock (_queue.SyncRoot)
-                        {
-                            Monitor.Pulse(_queue.SyncRoot);
-                        }
-
                         if (o == null)
+                        {
+                            Thread.Sleep(1000);
                             continue;
+                        }
 
                         string[] array = o.ToString().Split(new char[] { ',' }, 2);
                         if (array.Length != 2)
@@ -257,8 +252,6 @@ namespace ConsoleApp
                         {
                             LogHelper.Fatal("RabbitMQ生产者发送消息失败。消息内容：" + (o == null ? "" : o.ToString()), ex);
                         }
-
-
                     }
                     catch (Exception ex)
                     {
@@ -331,7 +324,7 @@ namespace ConsoleApp
                     object[] os = o as object[];
                     ReceiveMessage((MqQueueName)os[0], os[1] as Action<string>);
                 });
-                //thread.IsBackground = true;
+                thread.IsBackground = true;
                 thread.Start(new object[] { queueName, action });
                 _rcvMsgThreadListInExclusiveMode.Add(thread);
             }
@@ -366,8 +359,15 @@ namespace ConsoleApp
 
                         if (channel == null || channel.IsClosed)
                         {
-                            //创建通道
-                            channel = _connection.CreateModel();
+                            try
+                            {
+                                channel = _connection.CreateModel();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.Fatal("RabbitMQ消息生产者创建通道失败：" + ex.Message);
+                                continue;
+                            }
 
                             //创建队列
                             channel.QueueDeclare(queueName.ToString(), true, false, false, null);
@@ -382,7 +382,7 @@ namespace ConsoleApp
                         try
                         {
                             //获取消息
-                            consumer.Queue.Dequeue(100, out ea);
+                            ea = consumer.Queue.Dequeue();
                             message = Encoding.UTF8.GetString(ea.Body);
                             //处理消息
                             action(message);
@@ -422,7 +422,7 @@ namespace ConsoleApp
             for (int i = 0; i < batchSize; i++)
             {
                 Thread thread = new Thread(ReceiveMessage);
-                //thread.IsBackground = true;
+                thread.IsBackground = true;
                 thread.Start();
                 _rcvMsgThreadListInSharingMode.Add(thread);
             }
@@ -454,18 +454,20 @@ namespace ConsoleApp
 
                         if (channel == null || channel.IsClosed)
                         {
-                            channel = _connection.CreateModel();
+                            try
+                            {
+                                channel = _connection.CreateModel();
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.Fatal("RabbitMQ消息生产者创建通道失败：" + ex.Message);
+                                continue;
+                            }
                         }
 
 
                         foreach (var item in array)
                         {
-                            if (channel.IsClosed)
-                            {
-                                Thread.Sleep(100);
-                                continue;
-                            }
-
                             MqQueueName queueName = (MqQueueName)item;
 
                             Action<string> action = null;
@@ -538,22 +540,26 @@ namespace ConsoleApp
         Attention,
     }
 
-    public class MqServerRepository
+    public class MqServers
     {
         private const int DefautPort = -1;
         private List<ConnectionInfo> _list = new List<ConnectionInfo>();
         private int _currentIndex = 0;
-        private static MqServerRepository _instance = new MqServerRepository();
-        public static MqServerRepository Instance
+        private static MqServers _instance = new MqServers();
+        public static MqServers Instance
         {
             get
             {
                 return _instance;
             }
         }
-        private MqServerRepository()
+        private MqServers()
         {
-            AddServer("localhost", "mq", "mq");
+            string hosts = ConfigurationManager.AppSettings["Service.RabitMq.Host"];
+            string userName = ConfigurationManager.AppSettings["Service.RabitMq.User"];
+            string password = ConfigurationManager.AppSettings["Service.RabitMq.Password"];
+            string[] hostArray = hosts.Split(new string[] { ",", "|", ";" }, StringSplitOptions.RemoveEmptyEntries);
+            Array.ForEach(hostArray, p => AddServer(p, userName, password));
         }
         private bool ExistServer(string hostName)
         {
