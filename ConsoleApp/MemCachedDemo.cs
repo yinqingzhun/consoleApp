@@ -16,8 +16,8 @@ namespace ConsoleApp
         private static MemcachedClient client = new MemcachedClient("enyim.com/memcached");
         public static void Add(string key, object value, int expiresInSecond)
         {
-            var r = client.ExecuteStore(StoreMode.Add, key, value, TimeSpan.FromSeconds(expiresInSecond));
-            var s = r.Success;
+            //var r = client.ExecuteStore(StoreMode.Add, key, value, TimeSpan.FromSeconds(expiresInSecond));
+            //var s = r.Success;
         }
 
         public static T Get<T>(string key)
