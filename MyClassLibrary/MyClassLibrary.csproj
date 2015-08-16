@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base64Demo.cs" />
     <Compile Include="MqRepository.cs" />
     <Compile Include="PartitionerDemo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

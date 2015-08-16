@@ -3,28 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 namespace MyClassLibrary
 {
-    class TaskSchedulerDemo
+    public class TaskSchedulerDemo
     {
-        static void Main()
+       public static void Run()
         {
-            LimitedConcurrencyLevelTaskScheduler lcts = new LimitedConcurrencyLevelTaskScheduler(1);
+            LimitedConcurrencyLevelTaskScheduler lcts = new LimitedConcurrencyLevelTaskScheduler(20);
             TaskFactory factory = new TaskFactory(lcts);
 
             factory.StartNew(() =>
                 {
                     for (int i = 0; i < 500; i++)
                     {
-                        Console.Write("{0} on thread {1}", i, Thread.CurrentThread.ManagedThreadId);
+                        //Console.WriteLine("{0} on thread {1}", i, Thread.CurrentThread.ManagedThreadId);
                     }
                 }
             );
-
+            Thread.Sleep(2000);
+            
             Console.ReadKey();
         }
     }
@@ -43,7 +41,7 @@ namespace MyClassLibrary
         /// <summary>The maximum concurrency level allowed by this scheduler.</summary>
         private readonly int _maxDegreeOfParallelism;
         /// <summary>Whether the scheduler is currently processing work items.</summary>
-        private int _delegatesQueuedOrRunning = 0; // protected by lock(_tasks)
+        public int _delegatesQueuedOrRunning = 0; // protected by lock(_tasks)
 
         /// <summary>
         /// Initializes an instance of the LimitedConcurrencyLevelTaskScheduler class with the
@@ -60,13 +58,16 @@ namespace MyClassLibrary
         /// <param name="task">The task to be queued.</param>
         protected sealed override void QueueTask(Task task)
         {
+            Console.WriteLine("QueueTask");
             // Add the task to the list of tasks to be processed.  If there aren't enough
             // delegates currently queued or running to process tasks, schedule another.
             lock (_tasks)
             {
                 _tasks.AddLast(task);
+                Console.WriteLine(_delegatesQueuedOrRunning + "," + _maxDegreeOfParallelism);
                 if (_delegatesQueuedOrRunning < _maxDegreeOfParallelism)
                 {
+                    Console.WriteLine("Notify...");
                     ++_delegatesQueuedOrRunning;
                     NotifyThreadPoolOfPendingWork();
                 }
@@ -78,8 +79,10 @@ namespace MyClassLibrary
         /// </summary>
         private void NotifyThreadPoolOfPendingWork()
         {
+            
             ThreadPool.UnsafeQueueUserWorkItem(_ =>
             {
+                Console.WriteLine("NewUserWork");
                 // Note that the current thread is now processing work items.
                 // This is necessary to enable inlining of tasks into this thread.
                 _currentThreadIsProcessingItems = true;
@@ -95,7 +98,9 @@ namespace MyClassLibrary
                             // note that we're done processing, and get out.
                             if (_tasks.Count == 0)
                             {
+                                
                                 --_delegatesQueuedOrRunning;
+                                Console.WriteLine(_delegatesQueuedOrRunning);
                                 break;
                             }
 
@@ -119,6 +124,7 @@ namespace MyClassLibrary
         /// <returns>Whether the task could be executed on the current thread.</returns>
         protected sealed override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
+            Console.WriteLine("TryExecuteTaskInline");
             // If this thread isn't already processing a task, we don't support inlining
             if (!_currentThreadIsProcessingItems) return false;
 
@@ -134,6 +140,7 @@ namespace MyClassLibrary
         /// <returns>Whether the task could be found and removed.</returns>
         protected sealed override bool TryDequeue(Task task)
         {
+            Console.WriteLine("TryDequeue");
             lock (_tasks) return _tasks.Remove(task);
         }
 
@@ -144,6 +151,7 @@ namespace MyClassLibrary
         /// <returns>An enumerable of the tasks currently scheduled.</returns>
         protected sealed override IEnumerable<Task> GetScheduledTasks()
         {
+            Console.WriteLine("GetScheduledTasks");
             bool lockTaken = false;
             try
             {
