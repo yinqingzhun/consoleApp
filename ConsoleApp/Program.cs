@@ -22,42 +22,21 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using System.ComponentModel;
 using MyClassLibrary;
-using System.Net;
-using MyClassLibrary.MyClassLibrary;
 
 
 namespace ConsoleApp
 {
-    public class AppBaseResult
-    {
-        [JsonProperty("status")]
-        public int Status { get; set; }
-
-        /// <summary>
-        /// 是否是成功的响应结果
-        /// </summary>
-        [JsonIgnore]
-        public bool Successful
-        {
-            get { return Status == 0; }
-        }
-    }
-    public class AppSuccessResult : AppBaseResult
-    {
-        public AppSuccessResult()
-        {
-            Status = 0;
-        }
-
-        [JsonProperty("result")]
-        public object Result { get; set; }
-    }
 
     class Program
     {
+        class CustomData
+        {
+            public int Name { get; set; }
+            public long CreationTime { get; set; }
+            public int ThreadNum { get; set; }
+        }
         public static void Main()
         {
-
 
             try
             {
@@ -65,86 +44,27 @@ namespace ConsoleApp
                 //readMsg();
                 //writeMsg();
                 //HandleMqMsg();
-                //MemCachedDemo.Run();
-                Json();
+                PartitionerDemo.Run();
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine("异常信息：" + ex);
+                Console.WriteLine(ex.Message);
             }
 
             Console.Read();
-        }
-        private static void Json()
-        {
-
-            string s = @"
-{
-  ""issuccess"": true,
-  ""errorcode"": 0,
-  ""errormessage"": """",
-  ""data"": {
-    ""club_topic_up"": 6,
-    ""club_topic_post"": 1,
-    ""club_topic_forward"": null,
-    ""club_post_post"": null
-  },
-  ""validatemsg"": {}
-}";
-            JObject j = JsonConvert.DeserializeObject<JObject>(s);
-            List<JToken> n = j["data"].Children().AsEnumerable().ToList();
-            Dictionary<string, int> results = new Dictionary<string, int>();
-            n.ForEach(p =>
-            {
-                if (p is JProperty)
-                {
-                    JProperty prop = (JProperty)p;
-                    if (prop.Value is JValue)
-                    {
-                        int count = 0;
-                        if (prop.Value != null)
-                            int.TryParse(prop.Value.ToString(), out count);
-                        results.Add(prop.Name, count);
-                    }
-
-                }
-            });
-
-
-
-            s = @"[{
-    'message': '1恭喜，您的视频""自己动手换雨刷""已经通过审核，快去查看吧',
-    'topicId': 13822323
-},{
-    'message': '2恭喜，您的视频""自己动手换雨刷""已经通过审核，快去查看吧',
-    'topicId': 23822323
-},{
-    'message': '3恭喜，您的视频""自己动手换雨刷""已经通过审核，快去查看吧',
-    'topicId': 33822323
-}]";
-            var array = JsonConvert.DeserializeObject<List<Msg>>(s);
-            JObject a = JObject.FromObject(new AppSuccessResult());
-            a["result"] = JToken.FromObject(new { Contact = new { Phone = 1234343 } });
-            Console.WriteLine("result:"+a["a"]);
-
-        }
-        class Msg
-        {
-            public string message { get; set; }
-            public int topicId { get; set; }
         }
         private static void HandleMqMsg()
         {
             Action<string> a = p =>
             {
                 Console.WriteLine(p);
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             };
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.Attention, a);
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubPost, a);
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ClubTopic, a);
-            MqRepository.Instance.ReceiveMessageByExclusiveMode(MqQueueName.ForumTopic, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.Attention, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubPost, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ClubTopic, a);
+            MqRepository.Instance.ReceiveMessageBySharingMode(MqQueueName.ForumTopic, a);
 
         }
         class NoName
@@ -198,23 +118,18 @@ namespace ConsoleApp
             //Array.ForEach(ps, p => j[p.Name] = p.GetValue(o, null)) as JToken;
             return j;
         }
-        private static IConnection NewConnection()
-        {
-            var factory = new ConnectionFactory();
-            factory.HostName = "localhost";
-            factory.UserName = "mq";
-            factory.Password = "mq";
-            factory.AutomaticRecoveryEnabled = true;
-            factory.TopologyRecoveryEnabled = true;
-            return factory.CreateConnection();
-        }
         private static void writeMsg()
         {
             new Thread(() =>
                {
                    try
                    {
-                       using (var connection = NewConnection())
+                       var factory = new ConnectionFactory();
+                       factory.HostName = "localhost";
+                       factory.UserName = "mq";
+                       factory.Password = "mq";
+
+                       using (var connection = factory.CreateConnection())
                        {
                            using (var channel = connection.CreateModel())
                            {
@@ -224,31 +139,15 @@ namespace ConsoleApp
 
                                //定义持久化队列
                                channel.QueueDeclare("hello", true, false, false, null);
-                               channel.ConfirmSelect();
                                int i = 10;
-                               while (true)
+                               while (i-- > 0)
                                {
                                    string message = "Hello World:" + i;
                                    var body = Encoding.UTF8.GetBytes(message);
-                                   try
-                                   {
-                                       channel.BasicPublish("", "hello", properties, body);
-                                       channel.WaitForConfirmsOrDie();
-                                   }
-                                   catch (Exception ex)
-                                   {
-                                       Console.WriteLine(ex.Message);
-                                   }
+                                   channel.BasicPublish("", "hello2", properties, body);
 
                                    Console.WriteLine("==> {0}", message);
                                    Thread.Sleep(10);
-                                   i--;
-                                   if (i <= 0)
-                                   {
-                                       Console.WriteLine("press any key to continue...");
-                                       Console.ReadKey();
-                                       i = 10;
-                                   }
                                }
                            }
                        }
@@ -267,52 +166,35 @@ namespace ConsoleApp
             {
                 try
                 {
-                    using (var connection = NewConnection())
+
+
+                    var factory = new ConnectionFactory();
+                    factory.HostName = "localhost";
+                    factory.UserName = "mq";
+                    factory.Password = "mq";
+                    factory.AutomaticRecoveryEnabled = true;
+                    using (var connection = factory.CreateConnection())
                     {
-                        var channel = connection.CreateModel();
-
-                        //定义持久化队列
-                        channel.QueueDeclare("hello", true, false, false, null);
-                        channel.BasicQos(0, 1, false);
-                        var consumer = new QueueingBasicConsumer(channel);
-                        channel.BasicConsume("hello", false, consumer);
-
-                        Console.WriteLine("waiting for message.");
-                        BasicDeliverEventArgs ea = null;
-                        while (true)
+                        using (var channel = connection.CreateModel())
                         {
-                            try
+                            //定义持久化队列
+                            channel.QueueDeclare("hello", true, false, false, null);
+                            channel.BasicQos(0, 1, false);
+                            var consumer = new QueueingBasicConsumer(channel);
+                            channel.BasicConsume("hello", false, consumer);
+
+                            Console.WriteLine("waiting for message.");
+                            while (true)
                             {
-                                if (consumer.ShutdownReason != null && channel.IsOpen)
-                                {
-                                    channel.Close();
-                                    channel = connection.CreateModel();
-                                    channel.QueueDeclare("hello", true, false, false, null);
-                                    channel.BasicQos(0, 1, false);
-                                    consumer = new QueueingBasicConsumer(channel);
-                                    channel.BasicConsume("hello", false, consumer);
-                                }
-
-                                ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
-
+                                var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
 
                                 var body = ea.Body;
                                 var message = Encoding.UTF8.GetString(body);
                                 Console.WriteLine("<== {0}", message);
-                                //Thread.Sleep(4000);
-
+                                Thread.Sleep(4000);
                                 channel.BasicAck(ea.DeliveryTag, false);
-                                ea = null;
                             }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine(ex);
-                            }
-
-                            Console.WriteLine("press any key to continue...");
-                            Console.ReadKey();
                         }
-
                     }
                 }
                 catch (Exception ex)
@@ -323,7 +205,7 @@ namespace ConsoleApp
             }).Start();
         }
 
-        private static void WebRequestTest()
+        private static void WebRequest()
         {
             try
             {
