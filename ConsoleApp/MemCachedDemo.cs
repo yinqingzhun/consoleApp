@@ -31,12 +31,17 @@ namespace ConsoleApp
         }
         public static void Run()
         {
+            var detail = new IdentificationDetail()
+            {
+                BrandId = 1,
+                BrandName = "hello",
+            };
             object name = client.Get("name");
             if (name == null)
             {
-                bool result = client.Store(StoreMode.Add, "name", "yqz");
+                bool result = client.Store(StoreMode.Add, "name", detail);
                 //带过期时间的缓存    
-                bool success = client.Store(StoreMode.Add, "userName", "", DateTime.Now.AddMinutes(10));
+                //bool success = client.Store(StoreMode.Add, "userName", "", DateTime.Now.AddMinutes(10));
                 if (result)
                 {
                     Console.WriteLine("成功存入缓存");
@@ -59,5 +64,20 @@ namespace ConsoleApp
             }
 
         }
+    }
+    [SerializableAttribute] 
+    public class IdentificationDetail
+    {
+        /// <summary>
+        /// 是否已认证
+        /// </summary>
+        public bool IsIdentification { get; set; }
+
+        public int BrandId { get; set; }
+        public int SerialId { get; set; }
+        public int CarId { get; set; }
+        public string BrandName { get; set; }
+        public string SerialName { get; set; }
+        public string CarName { get; set; }
     }
 }

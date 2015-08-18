@@ -51,9 +51,11 @@
   <ItemGroup>
     <Compile Include="Base64Demo.cs" />
     <Compile Include="MqRepository.cs" />
+    <Compile Include="ParallelTaskDemo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RNGCSP.cs" />
     <Compile Include="TaskSchedulerDemo.cs" />
+    <Compile Include="WebRequestDemo.cs" />
     <Compile Include="WorkerThreadExample.cs" />
   </ItemGroup>
   <ItemGroup>

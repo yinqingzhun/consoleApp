@@ -22,10 +22,36 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using System.ComponentModel;
 using MyClassLibrary;
+using System.Net;
+using MyClassLibrary.MyClassLibrary;
 
 
 namespace ConsoleApp
 {
+    public class AppBaseResult
+    {
+        [JsonProperty("status")]
+        public int Status { get; set; }
+
+        /// <summary>
+        /// 是否是成功的响应结果
+        /// </summary>
+        [JsonIgnore]
+        public bool Successful
+        {
+            get { return Status == 0; }
+        }
+    }
+    public class AppSuccessResult : AppBaseResult
+    {
+        public AppSuccessResult()
+        {
+            Status = 0;
+        }
+
+        [JsonProperty("result")]
+        public object Result { get; set; }
+    }
 
     class Program
     {
@@ -35,16 +61,17 @@ namespace ConsoleApp
 
             try
             {
-                 
+
                 //readMsg();
                 //writeMsg();
-                 HandleMqMsg();
+                //HandleMqMsg();
+                //MemCachedDemo.Run();
+                Json();
 
-                //Console.WriteLine(Convert.FromBase64String);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("异常信息：" + ex);
             }
 
             Console.Read();
@@ -52,10 +79,60 @@ namespace ConsoleApp
         private static void Json()
         {
 
-            string s = "{'a':1,'b':[{'a':1},{'b':2}]}";
+            string s = @"
+{
+  ""issuccess"": true,
+  ""errorcode"": 0,
+  ""errormessage"": """",
+  ""data"": {
+    ""club_topic_up"": 6,
+    ""club_topic_post"": 1,
+    ""club_topic_forward"": null,
+    ""club_post_post"": null
+  },
+  ""validatemsg"": {}
+}";
             JObject j = JsonConvert.DeserializeObject<JObject>(s);
-            JToken n = j["b"].Children().AsEnumerable().ToList().First();
-            Console.WriteLine(n["a"]);
+            List<JToken> n = j["data"].Children().AsEnumerable().ToList();
+            Dictionary<string, int> results = new Dictionary<string, int>();
+            n.ForEach(p =>
+            {
+                if (p is JProperty)
+                {
+                    JProperty prop = (JProperty)p;
+                    if (prop.Value is JValue)
+                    {
+                        int count = 0;
+                        if (prop.Value != null)
+                            int.TryParse(prop.Value.ToString(), out count);
+                        results.Add(prop.Name, count);
+                    }
+
+                }
+            });
+
+
+
+            s = @"[{
+    'message': '1恭喜，您的视频""自己动手换雨刷""已经通过审核，快去查看吧',
+    'topicId': 13822323
+},{
+    'message': '2恭喜，您的视频""自己动手换雨刷""已经通过审核，快去查看吧',
+    'topicId': 23822323
+},{
+    'message': '3恭喜，您的视频""自己动手换雨刷""已经通过审核，快去查看吧',
+    'topicId': 33822323
+}]";
+            var array = JsonConvert.DeserializeObject<List<Msg>>(s);
+            JObject a = JObject.FromObject(new AppSuccessResult());
+            a["result"] = JToken.FromObject(new { Contact = new { Phone = 1234343 } });
+            Console.WriteLine("result:"+a["a"]);
+
+        }
+        class Msg
+        {
+            public string message { get; set; }
+            public int topicId { get; set; }
         }
         private static void HandleMqMsg()
         {
@@ -246,7 +323,7 @@ namespace ConsoleApp
             }).Start();
         }
 
-        private static void WebRequest()
+        private static void WebRequestTest()
         {
             try
             {

@@ -529,7 +529,7 @@ namespace ConsoleApp
         }
         public static void Fatal(string msg, Exception ex = null)
         {
-            log4net.LogManager.GetLogger("").Fatal(msg + (ex == null ? "" : "异常信息：" + ex.Message));
+            log4net.LogManager.GetLogger("hehe").Fatal(msg + (ex == null ? "" : "异常信息：" + ex.Message));
         }
     }
     public enum MqQueueName
