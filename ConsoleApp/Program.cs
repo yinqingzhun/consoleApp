@@ -22,6 +22,7 @@ using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using System.ComponentModel;
 using MyClassLibrary;
+using System.Web;
 
 
 namespace ConsoleApp
@@ -44,7 +45,10 @@ namespace ConsoleApp
                 //readMsg();
                 //writeMsg();
                 //HandleMqMsg();
-                PartitionerDemo.Run();
+                //PartitionerDemo.Run();
+                //TopicInfo t = JsonConvert.DeserializeObject<TopicInfo>("{'Tid':1}", new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                EmailClient.Run();
+                //Console.WriteLine(JsonConvert.SerializeObject(t,Formatting.Indented));
 
             }
             catch (Exception ex)
@@ -302,5 +306,192 @@ namespace ConsoleApp
         {
             return string.Format("Name:{0},Age:{1},Sex:{2}", Name, Age, Sex);
         }
+    }
+    public class TopicInfo
+    {
+        List<TopicVideoInfo> _videos = new List<TopicVideoInfo>();
+        List<TopicPhotoInfo> _photos = new List<TopicPhotoInfo>();
+        public int Tid { get; set; }
+
+        public int Cid { get; set; }
+
+        public int PosterId { get; set; }
+        private string _posterName = "";
+        public string PosterName
+        {
+            get { return _posterName ?? ""; }
+            set { _posterName = value; }
+        }
+
+        public DateTime PostDateTime { get; set; }
+
+        public int UpCount { get; set; }
+
+        public int ReplyCount { get; set; }
+
+        public int SourceType { get; set; }
+        private string _postIp = "";
+        public string PostIp
+        {
+            get { return _postIp ?? ""; }
+            set { _postIp = value; }
+        }
+        private string _content = "";
+        public string Content
+        {
+            get { return _content ?? ""; }
+            set { _content = value; }
+        }
+
+        public int PhotoCount { get; set; }
+
+        public bool IsPhoto { get; set; }
+
+        public int Mileage { get; set; }
+        private string _topicGuid = "";
+        public string TopicGuid
+        {
+            get { return _topicGuid ?? ""; }
+            set { _topicGuid = value; }
+        }
+
+        public int FilterStatus { get; set; }
+
+        public int Status { get; set; }
+
+        public List<TopicPhotoInfo> Photos
+        {
+            get
+            {
+                return _photos;
+            }
+            set
+            {
+                _photos = value;
+            }
+        }
+        private string _extentInfo = "";
+        public string ExtentInfo
+        {
+            get { return _extentInfo ?? ""; }
+            set { _extentInfo = value; }
+        }
+
+        public bool IsDigest { get; set; }
+
+        public bool IsTop { get; set; }
+
+        public int PosterRole { get; set; }
+        private string _avatar60 = "";
+        public string Avatar60
+        {
+            get { return _avatar60 ?? ""; }
+            set { _avatar60 = value; }
+        }
+
+        public bool IsVideo { get; set; }
+
+        public int VideoCount { get; set; }
+
+        public List<TopicVideoInfo> Videos
+        {
+            get
+            {
+                return _videos;
+            }
+            set
+            {
+                _videos = value;
+            }
+        }
+
+        public int ClientSourceType { get; set; }
+
+        public int CommentLimit { get; set; }
+
+        public int ParentTid { get; set; }
+        private string _clubName;
+        public string ClubName
+        {
+            get { return _clubName ?? ""; }
+            set { _clubName = value; }
+        }
+
+        public int ForwardCount { get; set; }
+        public TopicInfo ForwardTopic { get; set; }
+        private string _city;
+        public string City
+        {
+            get { return _city ?? ""; }
+            set { _city = value; }
+        }
+
+        public bool IsIdentification { get; set; }
+    }
+
+    public class TopicPhotoInfo
+    {
+        public int Id { get; set; }
+
+        public int Tid { get; set; }
+
+        public int Cid { get; set; }
+        private string _photoPath;
+        public string PhotoPath
+        {
+            get { return _photoPath ?? ""; }
+            set { _photoPath = value; }
+        }
+
+        public int UserId { get; set; }
+
+        public DateTime PostDateTime { get; set; }
+        private string _photoType;
+        public string PhotoType
+        {
+            get { return _photoType ?? ""; }
+            set { _photoType = value; }
+        }
+
+        public int PhotoSize { get; set; }
+        private string _sourceName;
+        public string SourceName
+        {
+            get { return _sourceName ?? ""; }
+            set { _sourceName = value; }
+        }
+
+        public int PhotoWidth { get; set; }
+
+        public int PhotoHeight { get; set; }
+        private string _photoExif;
+        public string PhotoExif
+        {
+            get { return _photoExif ?? ""; }
+            set { _photoExif = value; }
+        }
+        private string _photoGuid;
+        public string PhotoGuid
+        {
+            get { return _photoGuid ?? ""; }
+            set { _photoGuid = value; }
+        }
+        public int Status { get; set; }
+        private string _showUrl;
+        public string ShowUrl
+        {
+            get { return _showUrl ?? ""; }
+            set { _showUrl = value; }
+        }
+    }
+
+    public class TopicVideoInfo
+    {
+        public int Id { get; set; }
+        public int Tid { get; set; }
+        public string VideoUrl { get; set; }
+        public string VideoCover { get; set; }
+        public string VideoTitle { get; set; }
+        public int Status { get; set; }
     }
 }
