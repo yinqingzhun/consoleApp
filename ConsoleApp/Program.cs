@@ -43,12 +43,11 @@ namespace ConsoleApp
             {
 
                 //readMsg();
-                //writeMsg();
+                writeMsg();
                 //HandleMqMsg();
                 //PartitionerDemo.Run();
-                //TopicInfo t = JsonConvert.DeserializeObject<TopicInfo>("{'Tid':1}", new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-                EmailClient.Run();
-                //Console.WriteLine(JsonConvert.SerializeObject(t,Formatting.Indented));
+                //readJsonString();
+
 
             }
             catch (Exception ex)
@@ -111,7 +110,7 @@ namespace ConsoleApp
             //o.ForEach(p => list.Add(JObject.FromObject(p)));
             //list.Add(new NoName() { PSU = "p" ,CPU="c" });
             JArray array = JArray.FromObject(list);
-            Console.WriteLine(JsonConvert.SerializeObject(array, Formatting.Indented, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Include }));
+            Console.WriteLine(JsonConvert.SerializeObject(array, Formatting.Indented));
 
         }
         private static JObject ToJObject(object o)
@@ -130,8 +129,8 @@ namespace ConsoleApp
                    {
                        var factory = new ConnectionFactory();
                        factory.HostName = "localhost";
-                       factory.UserName = "mq";
-                       factory.Password = "mq";
+                       factory.UserName = "guest";
+                       factory.Password = "guest";
 
                        using (var connection = factory.CreateConnection())
                        {
@@ -139,19 +138,25 @@ namespace ConsoleApp
                            {
                                var properties = channel.CreateBasicProperties();
                                properties.DeliveryMode = 2;
-                               properties.SetPersistent(true);
+                               properties.Persistent = true;
 
                                //定义持久化队列
                                channel.QueueDeclare("hello", true, false, false, null);
                                int i = 10;
-                               while (i-- > 0)
+                               while (true)
                                {
-                                   string message = "Hello World:" + i;
-                                   var body = Encoding.UTF8.GetBytes(message);
-                                   channel.BasicPublish("", "hello2", properties, body);
+                                   while (i-- > 0)
+                                   {
+                                       string message = "Hello World:" + i;
+                                       var body = Encoding.UTF8.GetBytes(message);
+                                       channel.BasicPublish("", "hello", properties, body);
 
-                                   Console.WriteLine("==> {0}", message);
-                                   Thread.Sleep(10);
+                                       Console.WriteLine("==> {0}", message);
+                                       Thread.Sleep(10);
+                                   }
+                                   Console.WriteLine("press any key to push 10 more messages...");
+                                   Console.ReadKey();
+                                   i = 10;
                                }
                            }
                        }

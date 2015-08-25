@@ -25,7 +25,7 @@ namespace TopShelfDemo
                      {
                          MqQueueName name = (MqQueueName)array.GetValue(r.Next(array.Length));
                          MqRepository.Instance.SendMessage(name, i++.ToString());
-                         Thread.Sleep(50);
+                         Thread.Sleep(5000);
                      }
                  }
                  catch (Exception ex)
