@@ -23,7 +23,7 @@ using Newtonsoft.Json.Converters;
 using System.ComponentModel;
 using MyClassLibrary;
 using System.Web;
-using EFContext;
+using System.Security.Cryptography;
 
 
 namespace ConsoleApp
@@ -48,12 +48,35 @@ namespace ConsoleApp
                 //HandleMqMsg();
                 //PartitionerDemo.Run();
                 //readJsonString();
-                List<string> list = new List<string>(new string[] { "1", "3", "5" });
-                Dictionary<string, int> dic = new Dictionary<string, int>();
-                dic["n"] = 1;
-                dic["m"] = 2;
 
-                Console.WriteLine(JObject.FromObject(dic));
+                byte[] bs = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes("adsfYllkjdsf"));
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < bs.Length; i++)
+                {
+                    Console.Write(bs[i] + " ");
+                    sb.AppendFormat("{0:X2}", bs[i]);
+                } Console.WriteLine();
+                Console.WriteLine(sb);
+                string ss = sb.ToString();
+                for (int i = 0; i < ss.Length; i=i+2)
+                {
+                    Console.Write(Convert.ToByte(ss.Substring(i,2),0x10) + " ");
+                }
+
+                //DateTime now = DateTime.Now;
+                //DateTime sometime = new DateTime(DateTime.MinValue.Year, DateTime.MinValue.Month, DateTime.MinValue.Day, 22, 5, 0);
+                //var sometimeToday = new DateTime(now.Year, now.Month, now.Day, sometime.Hour, sometime.Minute, sometime.Second);
+                //TimeSpan dueTime = sometimeToday - now;
+
+                //if (dueTime.TotalMilliseconds < 0)
+                //    dueTime = dueTime.Add(TimeSpan.FromDays(1));
+                //Console.WriteLine(
+                //    string.Format("距离下个{0:D2}:{1:D2}:{2:D2}还有", sometime.Hour, sometime.Minute, sometime.Second)
+                //    + dueTime.ToString(@"hh\:mm\:ss"));
+
+
+
+
             }
             catch (Exception ex)
             {
@@ -115,7 +138,7 @@ namespace ConsoleApp
             //o.ForEach(p => list.Add(JObject.FromObject(p)));
             //list.Add(new NoName() { PSU = "p" ,CPU="c" });
             JArray array = JArray.FromObject(list);
-            Console.WriteLine(JsonConvert.SerializeObject(new { photos = new object[0] }, Formatting.Indented));
+            Console.WriteLine(JsonConvert.SerializeObject(array, Formatting.Indented));
 
         }
         private static JObject ToJObject(object o)
