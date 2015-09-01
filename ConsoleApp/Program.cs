@@ -23,6 +23,7 @@ using Newtonsoft.Json.Converters;
 using System.ComponentModel;
 using MyClassLibrary;
 using System.Web;
+using EFContext;
 
 
 namespace ConsoleApp
@@ -43,12 +44,16 @@ namespace ConsoleApp
             {
 
                 //readMsg();
-                writeMsg();
+                //writeMsg();
                 //HandleMqMsg();
                 //PartitionerDemo.Run();
                 //readJsonString();
+                List<string> list = new List<string>(new string[] { "1", "3", "5" });
+                Dictionary<string, int> dic = new Dictionary<string, int>();
+                dic["n"] = 1;
+                dic["m"] = 2;
 
-
+                Console.WriteLine(JObject.FromObject(dic));
             }
             catch (Exception ex)
             {
@@ -110,7 +115,7 @@ namespace ConsoleApp
             //o.ForEach(p => list.Add(JObject.FromObject(p)));
             //list.Add(new NoName() { PSU = "p" ,CPU="c" });
             JArray array = JArray.FromObject(list);
-            Console.WriteLine(JsonConvert.SerializeObject(array, Formatting.Indented));
+            Console.WriteLine(JsonConvert.SerializeObject(new { photos = new object[0] }, Formatting.Indented));
 
         }
         private static JObject ToJObject(object o)

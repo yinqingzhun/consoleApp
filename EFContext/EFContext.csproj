@@ -1,0 +1,334 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C0C833AB-312F-4A00-A401-4CBE1621622E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>EFContext</RootNamespace>
+    <AssemblyName>EFContext</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net40\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net40\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AohModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AohModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AohModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AohModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AohModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_Activity.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityCoordinateEvaluation.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityCoordinatePeriod.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityCoordinatePoint.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityCoordinateTeam.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityCoordinateTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityQuestionDetails.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityUser.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityUserAnswersDetails.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityWeixinPrize.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ActivityWeixinPrizeUsers.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_AutoAttentionUser.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_AutoJoinClub.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_Calllog.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubFavoriteClub.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubFavoriteTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubFreshTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubOfficialClub.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubRecommendClub.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubRecommendClubForFresh.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubRecommendTopicV2.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubThemeGroup.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubThemeTopTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubTopicExtraInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubUserTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubUserTopicFeed.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ClubVideoTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_club_focus_topic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_club_recommend_theme.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_club_recommend_topic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_club_theme_topic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ForumFocusTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ForumRecommendTopic.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ForumTopicExtraInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_HuaweiRaffleParticipator.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_ImBlockUser.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_LotteryCarNumber.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_PushBroadcastMessage.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_push_register.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_RaffleStrategy.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_RaffleWinnerExtraInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_SeckillingWinner.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_SeckillingWinnerArchive.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_SeckillingWinnerContact.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_SocialRecommendUserForFresh.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_TelSegment.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_TopMan.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_TopManTarget.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UseCarRestriction.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UseCarWelfare.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UseCarWelfareParticipant.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UseCarWelfarePrize.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_usecar_car_register.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="aoh_user.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UserCheckInLog.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UserExtraInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UserFollower.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UserSession.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UtilAppPackage.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UtilAppStrategy.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UtilEventLog.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UtilJutuIphoneAdEventLog.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UtilRecommendApp.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="AOH_UtilShortUrl.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Base_ValueList.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CUS_ObdDeviceNotifyInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CUS_ObdDrivingShare.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CUS_ObdUserCar.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CUS_ObdUserInfo.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="F00_ExtenNumner.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="F00_NumberClass.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="F00_ParkCardApplication.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="F00_UserApplication.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SystemUer.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="SYS_RequestStatLog.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="SYS_RequestTimeoutLog.cs">
+      <DependentUpon>AohModel.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EntityDeploy Include="AohModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>AohModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="AohModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>AohModel.edmx</DependentUpon>
+      <LastGenOutput>AohModel.Context.cs</LastGenOutput>
+    </None>
+    <None Include="AohModel.edmx.diagram">
+      <DependentUpon>AohModel.edmx</DependentUpon>
+    </None>
+    <None Include="AohModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>AohModel.edmx</DependentUpon>
+      <LastGenOutput>AohModel.cs</LastGenOutput>
+    </None>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
