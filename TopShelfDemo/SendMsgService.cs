@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ConsoleApp;
+using MyClassLibrary;
 using Topshelf;
 
 namespace TopShelfDemo
@@ -25,7 +26,7 @@ namespace TopShelfDemo
                      {
                          MqQueueName name = (MqQueueName)array.GetValue(r.Next(array.Length));
                          MqRepository.Instance.SendMessage(name, i++.ToString());
-                         Thread.Sleep(5000);
+                         Thread.Sleep(10);
                      }
                  }
                  catch (Exception ex)

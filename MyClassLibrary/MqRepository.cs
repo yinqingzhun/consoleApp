@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using MyClassLibrary;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -521,17 +522,7 @@ namespace ConsoleApp
         }
         #endregion
     }
-    public class LogHelper
-    {
-        static LogHelper()
-        {
-            log4net.Config.XmlConfigurator.Configure();
-        }
-        public static void Fatal(string msg, Exception ex = null)
-        {
-            log4net.LogManager.GetLogger("hehe").Fatal(msg + (ex == null ? "" : "异常信息：" + ex.Message));
-        }
-    }
+  
     public enum MqQueueName
     {
         ClubTopic,

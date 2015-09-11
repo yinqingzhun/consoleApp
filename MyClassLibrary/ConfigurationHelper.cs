@@ -10,7 +10,7 @@ namespace MyClassLibrary
     public class ConfigurationHelper
     {
 
-        public static T GetAppSetting<T>(string key, T defaultValue=default(T))
+        public static T GetAppSetting<T>(string key, T defaultValue = default(T))
         {
             try
             {
@@ -18,7 +18,7 @@ namespace MyClassLibrary
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                //Console.WriteLine(ex);
             }
 
             return defaultValue;
@@ -30,7 +30,7 @@ namespace MyClassLibrary
                 throw new ArgumentNullException("key");
             if (ConfigurationManager.AppSettings.AllKeys.Contains(key))
                 return ConfigurationManager.AppSettings[key];
-            return string.Empty;
+            throw new KeyNotFoundException(key);
         }
     }
 }

@@ -24,11 +24,13 @@ using System.ComponentModel;
 using MyClassLibrary;
 using System.Web;
 using System.Security.Cryptography;
+using System.Xml.Linq;
+using ConsoleApp.ServiceReference1;
+using System.Configuration;
 
 
 namespace ConsoleApp
 {
-
     class Program
     {
         class CustomData
@@ -48,42 +50,42 @@ namespace ConsoleApp
                 //HandleMqMsg();
                 //PartitionerDemo.Run();
                 //readJsonString();
-
-                byte[] bs = MD5.Create().ComputeHash(Encoding.UTF8.GetBytes("adsfYllkjdsf"));
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < bs.Length; i++)
-                {
-                    Console.Write(bs[i] + " ");
-                    sb.AppendFormat("{0:X2}", bs[i]);
-                } Console.WriteLine();
-                Console.WriteLine(sb);
-                string ss = sb.ToString();
-                for (int i = 0; i < ss.Length; i=i+2)
-                {
-                    Console.Write(Convert.ToByte(ss.Substring(i,2),0x10) + " ");
-                }
-
-                //DateTime now = DateTime.Now;
-                //DateTime sometime = new DateTime(DateTime.MinValue.Year, DateTime.MinValue.Month, DateTime.MinValue.Day, 22, 5, 0);
-                //var sometimeToday = new DateTime(now.Year, now.Month, now.Day, sometime.Hour, sometime.Minute, sometime.Second);
-                //TimeSpan dueTime = sometimeToday - now;
-
-                //if (dueTime.TotalMilliseconds < 0)
-                //    dueTime = dueTime.Add(TimeSpan.FromDays(1));
-                //Console.WriteLine(
-                //    string.Format("距离下个{0:D2}:{1:D2}:{2:D2}还有", sometime.Hour, sometime.Minute, sometime.Second)
-                //    + dueTime.ToString(@"hh\:mm\:ss"));
-
-
-
-
+                int i = 0;
+                int j = 5 / i;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                LogHelper.Error("Error Occurs.", ex, "test");
             }
 
             Console.Read();
+        }
+        private static void ProcessMessage(string xmlMessage)
+        {
+
+
+            XDocument document = XDocument.Parse(xmlMessage);
+            XElement headerElement = document.Element("Messages").Element("Header");
+            XElement bodyElement = document.Element("Messages").Element("Body");
+            if (bodyElement != null && headerElement != null)
+            {
+                var appId = headerElement.Element("AppId").Value;
+                var entityType = headerElement.Element("EntityType").Value;
+                var operationType = headerElement.Element("OperateType").Value;
+                var entityGuid = bodyElement.Element("EntityId").Value;
+                var operationInfo = bodyElement.Element("OperaterInfo");
+                var operatorId = 0;
+                var operateTime = DateTime.Now;
+                if (operationInfo != null)
+                {
+                    operatorId = Convert.ToInt32(operationInfo.Element("UserId").Value);
+                    operateTime = DateTime.Parse(operationInfo.Element("OperateTime").Value);
+                }
+
+
+
+
+            }
         }
         private static void HandleMqMsg()
         {

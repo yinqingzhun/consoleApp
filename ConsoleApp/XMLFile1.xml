@@ -1,98 +1,123 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<topic>
-  <topicItem>
-    <topicGuid>
-      b5e53467-c1e5
-      -491f-8f6d-9b65ee33e577
-    </topicGuid>
-    <tid>6899452</tid>
-    <title>
-      国奥65秒闪击5-0大胜
-      新加坡 两场净胜10球领跑J组
-    </title>
-    <topicUrl>
-      http://baa.bitauto.com/zuqiu/thread-
-      6899452.html
-    </topicUrl>
-    <FGid>7922</FGid>
-    <forumUrl>
-      http://baa.bitauto.com/zuqiu/
-    </forumUrl>
-    <ForumName>易车足球大联盟</ForumName>
-    <ForumApp>zuqiu</ForumApp>
-    <isdigest>false</isdigest>
-    <isattachment>true</isattachment>
-    <poster>dezhouzhao</poster>
-    <posterId>3104014</posterId>
-    <postdatetime>2015-03-30T08:27:53.83</postdatetime>
-    <lastpost>
-      2015-03-30T13:32:09.28
-    </lastpost>
-    <lastposter>买个车车游世界</lastposter>
-    <lastposterId>2470530</lastposterId>
-    <views>44</views>
-    <replies>6</replies>
-    <postty peid="">
-      0
-    </postty>
-    <abstract>
-      北京时间3月29日17点，2016年U23亚锦赛预选赛暨2016年
-      里约奥运会亚预赛J组次轮比赛继续进行，中国国奥队在万象老挝国家体育场迎战新加坡队
-      。上半场开场仅65秒，李源一闪击破门，第39分钟，冯刚扩大比分。下半场先是徐新打入点
-      球，随后替补出场的臧一锋再入一球，吴兴涵打入锦上添花一球。比赛最后时刻裴帅罚失点
-      球，最终中国国奥队5-0大胜新加坡，连续两轮5球血洗对手,继续领跑J组。首轮比赛，中国
-      国奥队5-0大胜蒙古，新加坡首战与东道主老挝0-0互交白卷。上半场比赛开始，刚过了65秒
-      ，中国队就取得破门，曹海清前场左路送出挑传，新加坡门将罗海查选位失误，站在球门近
-      角，李源一禁区左侧倒地左脚铲射远角破
-    </abstract>
-    <images>
-      <img>
-        <url>
-          2015\3\30\d3f8a
-          69be2d348d29af34aea1c483e39.jpg
-        </url>
-        <sourceurl>
-          http://img4.baa.bitautotech.com/
-          DzUsergroupFiles/2015/3/30/d3f8a69be2d348d29af34aea1c483e39.jpg
-        </sourceurl>
-      </img>
-      <img>
-        <url>2015\3\30\95fc0fcaee1a4f31a5d9b49a8c585f5d.jpg</url>
-        <sourceurl>
-          http:/
-          /pic.baa.bitautotech.com/DzUsergroupFiles/2015/3/30/95fc0fcaee1a4f31a5d9b49a8c58
-          5f5d.jpg
-        </sourceurl>
-      </img>
-      <img>
-        <url>
-          2015\3\30\3835ff1b15b54a24bdd33585bd0315a6.j
-          pg
-        </url>
-        <sourceurl>
-          http://img1.baa.bitautotech.com/DzUsergroupFiles/2015/3/30/38
-          35ff1b15b54a24bdd33585bd0315a6.jpg
-        </sourceurl>
-      </img>
-      <img>
-        <url>
-          2015\3\30\a97e2a03
-          3d0248fcb97f7220d812d1bf.jpg
-        </url>
-        <sourceurl>
-          http://img1.baa.bitautotech.com/DzU
-          sergroupFiles/2015/3/30/a97e2a033d0248fcb97f7220d812d1bf.jpg
-        </sourceurl>
-      </img>
-      <img="">
-        <url>2015\3\30\345c20a4c5794933a955cbfbb109eae8.jpg</url>
-        <sourceurl>
-          http://im
-          g3.baa.bitautotech.com/DzUsergroupFiles/2015/3/30/345c20a4c5794933a955cbfbb109ea
-          e8.jpg
-        </sourceurl>
-      </img>
-    </images>
-  </topicItem>
-</topic>
-
+<configuration>
+  <configSections>
+    <section name="log4net" type="log4net.Config.Log4NetConfigurationSectionHandler, log4net" />
+    <section name="CloudHill.Framework.CommonPlatformConfig" type="CloudHill.Framework.Config.SitePlatformConfigurationSectionHandler, CloudHill.Framework" />
+    <!-- For more information on Entity Framework configuration, visit http://go.microsoft.com/fwlink/?LinkID=237468 -->
+    <section name="entityFramework" type="System.Data.Entity.Internal.ConfigFile.EntityFrameworkSection, EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" requirePermission="false" />
+    <section name="BitAuto.Utils.CommonPlatformConfig" type="BitAuto.Utils.Config.CommonPlatformConfiurationSectionHandler, BitAuto.Utils" allowDefinition="MachineToApplication" restartOnExternalChanges="true" />
+  </configSections>
+  <connectionStrings>
+    <add name="aohEntities" connectionString="metadata=res://*/AohModel.csdl|res://*/AohModel.ssdl|res://*/AohModel.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=172.17.1.102;initial catalog=aoh;persist security info=True;user id=aoh_app;password=BE02D0E7-2B9B-4E52-9EAD-96A7F3750F96;multipleactiveresultsets=True;application name=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+  </connectionStrings>
+  <startup>
+    <supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.0" />
+  </startup>
+  <BitAuto.Utils.CommonPlatformConfig>
+    <CommonConfig>
+      <!-- 
+      如果采用了EnyimProvider，还需要配置<enyim.com>配置节
+      -->
+      <CacheConfig defaultProvider="MemcachedCacheProvider">
+        <providers>
+          <!-- 
+              servers="127.0.0.1:11211"  memcache服务端列表，
+              socketConnectTimeout="1000"  socket链接超时时间
+              socketTimeout="1000"    socket超时时间
+              defaultExpireTime="5000000"  默认的缓存时间，单位是毫秒
+          -->
+          <add name="MemcachedCacheProvider" type="BitAuto.Services.Cache.MemcachedCacheProvider,BitAuto.Services" servers="192.168.0.232:11221,192.168.0.147:11221,192.168.0.252:11221" socketConnectTimeout="1000" socketTimeout="1000" defaultExpireTime="5000000" />
+        </providers>
+      </CacheConfig>
+      <!--
+			分布式文件存储接口配置
+			Address: 服务的地址如:net.tcp://127.0.0.1:5000
+			UserName:验证用户名
+			Password:验证密码
+			connectionStringName:文件服务器数据库中的设置地址，此时address属性无用
+			说明：服务端更加用户名密码验证文件夹访问权限		-->
+      <FileServer Address="net.tcp://dfsfs1.s.bitautotech.com:20010" UserName="ycaoh" Password="ycaoh" />
+    </CommonConfig>
+  </BitAuto.Utils.CommonPlatformConfig>
+  <CloudHill.Framework.CommonPlatformConfig>
+    <SiteConfig>
+      <DataBaseConnections>
+        <add name="Authority" connectionString="Data Source=172.17.1.102;Initial Catalog=aoh;User ID=aoh_app;pwd=BE02D0E7-2B9B-4E52-9EAD-96A7F3750F96;" />
+      </DataBaseConnections>
+    </SiteConfig>
+  </CloudHill.Framework.CommonPlatformConfig>
+  <appSettings>
+    <!--运行环境，Test,Product,Dev，默认为Product-->
+    <add key="Enviroment" value="Product" />
+    <add key="AutoApiAppKey" value="100051" />
+    <add key="AutoApiAppSecret" value="abcb040d991e4e8598e8b9baed2c070d" />
+    <!--邮件通知-->
+    <add key="Mail_SenderEmailAddress" value="aoh_notice@aliyun.com" />
+    <add key="Mail_SmtpHost" value="smtp.aliyun.com" />
+    <add key="Mail_SmtpPort" value="25" />
+    <add key="Mail_UserName" value="aoh_notice@aliyun.com" />
+    <add key="Mail_Password" value="aoh@2015" />
+    <!--数据量通知-->
+    <add key="DataQuantity_ReceiverEmailAddress" value="yinqz@yiche.com" />
+    <add key="ClientSettingsProvider.ServiceUri" value="" />
+    <!--消息队列-->
+    <add key="MqConcurrentSizeInSharingMode" value="10" />
+    <add key="Service.RabitMq.Host" value="WIN-CHEZHUZJ01,WIN-CHEZHUZJ02"/>
+    <add key="Service.RabitMq.User" value="mq"/>
+    <add key="Service.RabitMq.Password" value="mq"/>
+  </appSettings>
+  <log4net>
+    <!--定义输出到文件中-->
+    <appender name="LogFileAppender" type="log4net.Appender.RollingFileAppender,log4net">
+      <param name="File" type="" value="log/" />
+      <param name="AppendToFile" value="true" />
+      <param name="RollingStyle" value="Date" />
+      <param name="DatePattern" value="yyyyMMdd" />
+      <param name="StaticLogFileName" value="false" />
+      <layout type="log4net.Layout.PatternLayout,log4net">
+        <param name="Header" value="" />
+        <param name="Footer" value="" />
+        <param name="ConversionPattern" value="%date [%thread] %-5level %logger - %message%newline" />
+      </layout>
+      <!--<filter type="log4net.Filter.LevelRangeFilter,log4net">
+        <param name="LevelMin" value="DEBUG" />
+        <param name="LevelMax" value="WARN" />
+      </filter>-->
+    </appender>
+    <!--定义输出到控制台命令行中-->
+    <appender name="ConsoleAppender" type="log4net.Appender.ConsoleAppender">
+      <layout type="log4net.Layout.PatternLayout">
+        <conversionPattern value="%date [%thread] %-5level %logger - %message%newline" />
+      </layout>
+    </appender>
+    <!--定义日志的输出媒介-->
+    <root>
+      <!--文件形式记录日志-->
+      <appender-ref ref="LogFileAppender" />
+      <!--控制台控制显示日志-->
+      <appender-ref ref="ConsoleAppender" />
+    </root>
+  </log4net>
+  <system.web>
+    <membership defaultProvider="ClientAuthenticationMembershipProvider">
+      <providers>
+        <add name="ClientAuthenticationMembershipProvider" type="System.Web.ClientServices.Providers.ClientFormsAuthenticationMembershipProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" />
+      </providers>
+    </membership>
+    <roleManager defaultProvider="ClientRoleProvider" enabled="true">
+      <providers>
+        <add name="ClientRoleProvider" type="System.Web.ClientServices.Providers.ClientRoleProvider, System.Web.Extensions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" serviceUri="" cacheTimeout="86400" />
+      </providers>
+    </roleManager>
+  </system.web>
+  <system.serviceModel>
+    <bindings>
+      <basicHttpBinding>
+        <binding name="SystemMessageWebServiceSoap" />
+      </basicHttpBinding>
+    </bindings>
+    <client>
+      <endpoint address="http://api.baa.bitauto.com/ibt/SystemMessageWebService.asmx" binding="basicHttpBinding" bindingConfiguration="SystemMessageWebServiceSoap" contract="SystemMessageWebService.SystemMessageWebServiceSoap" name="SystemMessageWebServiceSoap" />
+    </client>
+  </system.serviceModel>
+</configuration>

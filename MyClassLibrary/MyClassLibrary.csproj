@@ -68,10 +68,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base64Demo.cs" />
+    <Compile Include="ByteConverter.cs" />
     <Compile Include="ConfigurationHelper.cs" />
     <Compile Include="ConfigurationSectionDemo.cs" />
     <Compile Include="EmailClient.cs" />
     <Compile Include="HashDemo.cs" />
+    <Compile Include="LogHelper.cs" />
     <Compile Include="MqRepository.cs" />
     <Compile Include="PartitionerDemo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
