@@ -39,6 +39,7 @@ namespace ConsoleApp
             public long CreationTime { get; set; }
             public int ThreadNum { get; set; }
         }
+
         public static void Main()
         {
 
@@ -49,9 +50,9 @@ namespace ConsoleApp
                 //writeMsg();
                 //HandleMqMsg();
                 //PartitionerDemo.Run();
-                //readJsonString();
-                int i = 0;
-                int j = 5 / i;
+                readJsonString();
+                 
+
             }
             catch (Exception ex)
             {
@@ -60,6 +61,10 @@ namespace ConsoleApp
 
             Console.Read();
         }
+
+        
+
+      
         private static void ProcessMessage(string xmlMessage)
         {
 
@@ -113,8 +118,8 @@ namespace ConsoleApp
             string json = @"{
 'Date':'2015-8-8 15:32:33',
  'CPU':'cpu',
-    'PSU': '500W',
-   'Drives': [
+ 'PSU': '500W',
+ 'Drives': [
       'DVD read/writer'
       /*(broken)*/,
       '500 gigabyte hard drive',
@@ -123,24 +128,18 @@ namespace ConsoleApp
 'Object':{'Name':'ObjectName'}
 }";
             string s = string.Format(@"{{""results"":[{0}]}}", json);
-            JObject o = JsonConvert.DeserializeObject<JObject>(s,
+            JObject o = JsonConvert.DeserializeObject<JObject>(json,
                 new JsonSerializerSettings()
                 {
                     DateFormatHandling = DateFormatHandling.IsoDateFormat,
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     DefaultValueHandling = DefaultValueHandling.Include
                 });
-            List<NoName> list = new List<NoName>();
-            o["results"].ToList().ForEach(p => list.Add(JsonConvert.DeserializeObject<NoName>(p.ToString())));
-            // JObject j = JObject.FromObject(o);
-            //// j["a"] = "a";
-            // j.Add("oo", "dd");
-            // j.Add("time", DateTime.Now);
-            //List<JObject> list = new List<JObject>();
-            //o.ForEach(p => list.Add(JObject.FromObject(p)));
-            //list.Add(new NoName() { PSU = "p" ,CPU="c" });
-            JArray array = JArray.FromObject(list);
-            Console.WriteLine(JsonConvert.SerializeObject(array, Formatting.Indented));
+            //List<NoName> list = new List<NoName>();
+            //o["results"].ToList().ForEach(p => list.Add(JsonConvert.DeserializeObject<NoName>(p.ToString())));
+            //JArray array = JArray.FromObject(list);
+            o["Drives"] = new JArray();
+            Console.WriteLine(o);
 
         }
         private static JObject ToJObject(object o)

@@ -211,7 +211,7 @@ namespace ConsoleApp
                             //设置消息持久化
                             properties = channel.CreateBasicProperties();
                             properties.DeliveryMode = 2;
-                            properties.SetPersistent(true);
+                            properties.Persistent=true;
                         }
 
 
