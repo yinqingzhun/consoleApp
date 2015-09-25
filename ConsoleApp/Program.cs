@@ -42,7 +42,7 @@ namespace ConsoleApp
 
         public static void Main()
         {
-
+            int m = 0;
             try
             {
 
