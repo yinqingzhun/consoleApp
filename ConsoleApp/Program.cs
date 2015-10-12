@@ -35,6 +35,7 @@ namespace ConsoleApp
     {
         class CustomData
         {
+            public int DataId { get; set; }
             public string Name { get; set; }
             public long CreationTime { get; set; }
             public int ThreadNum { get; set; }
