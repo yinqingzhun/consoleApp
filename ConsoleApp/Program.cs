@@ -50,21 +50,25 @@ namespace ConsoleApp
                 //writeMsg();
                 //HandleMqMsg();
                 //PartitionerDemo.Run();
-                readJsonString();
-                 
+                //readJsonString();
+                string s =@"{""photos"":[],""content"":""最新快讯：\\n        著名的某岛虾老板已经得到了应有的惩罚———猝死。原因是昨天他去交9万罚款，到工商局才知道，是一只虾罚款9万！当场狂吐白沫，享年38岁。\\u0014\\u0003\\u0014\\u0003\\u0014\\u0003";
+                JObject j = JsonConvert.DeserializeObject<JObject>(s);
+                 Console.WriteLine( JsonConvert.SerializeObject(j));
+               
 
             }
             catch (Exception ex)
             {
-                LogHelper.Error("Error Occurs.", ex, "test");
+                Console.WriteLine(ex);
+                //LogHelper.Error("Error Occurs.", ex, "test");
             }
 
             Console.Read();
         }
 
-        
 
-      
+
+
         private static void ProcessMessage(string xmlMessage)
         {
 
@@ -125,9 +129,11 @@ namespace ConsoleApp
       '500 gigabyte hard drive',
       '200 gigabype hard drive'
     ],
-'Object':{'Name':'ObjectName'}
+'Object':{'Name':'ObjectName'},
+'xx':null
 }";
             string s = string.Format(@"{{""results"":[{0}]}}", json);
+
             JObject o = JsonConvert.DeserializeObject<JObject>(json,
                 new JsonSerializerSettings()
                 {
@@ -135,11 +141,14 @@ namespace ConsoleApp
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     DefaultValueHandling = DefaultValueHandling.Include
                 });
+
+            //((JObject)o["Object"]).Remove("Name");
+            Console.WriteLine(JsonConvert.SerializeObject(new { result = o }, new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fff" }));
             //List<NoName> list = new List<NoName>();
             //o["results"].ToList().ForEach(p => list.Add(JsonConvert.DeserializeObject<NoName>(p.ToString())));
             //JArray array = JArray.FromObject(list);
-            o["Drives"] = new JArray();
-            Console.WriteLine(o);
+            //o["Drives"] = new JArray();
+            //Console.WriteLine(JsonConvert.SerializeObject(o,new IsoDateTimeConverter{DateTimeFormat="yyyy-MM-ddTHH:mm:ss.fff"}));
 
         }
         private static JObject ToJObject(object o)
