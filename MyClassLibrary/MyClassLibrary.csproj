@@ -68,6 +68,8 @@
   <ItemGroup>
     <Compile Include="Base64Demo.cs" />
     <Compile Include="ConfigurationHelper.cs" />
+    <Compile Include="CopyHelper.cs" />
+    <Compile Include="DosCommandHelper.cs" />
     <Compile Include="EmailClient.cs" />
     <Compile Include="HashDemo.cs" />
     <Compile Include="MqRepository.cs" />
