@@ -26,7 +26,7 @@ using MyClassLibrary;
 
 namespace ConsoleApp
 {
-
+    //程序入口类
     class Program
     {
         //入口方法
