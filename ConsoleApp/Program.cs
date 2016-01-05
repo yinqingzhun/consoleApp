@@ -29,7 +29,7 @@ namespace ConsoleApp
 
     class Program
     {
-
+        //入口方法
         public static void Main()
         {
 
