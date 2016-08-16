@@ -71,6 +71,7 @@
     <Compile Include="ByteConverter.cs" />
     <Compile Include="ConfigurationHelper.cs" />
     <Compile Include="ConfigurationSectionDemo.cs" />
+    <Compile Include="DateTimeHelper.cs" />
     <Compile Include="EmailClient.cs" />
     <Compile Include="HashDemo.cs" />
     <Compile Include="LogHelper.cs" />
