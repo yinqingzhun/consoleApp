@@ -47,15 +47,13 @@ namespace ConsoleApp
             try
             {
 
-                //readMsg();
-                //writeMsg();
-                //HandleMqMsg();
-                //PartitionerDemo.Run();
-                //readJsonString();
-                string s =@"{""photos"":[],""content"":""最新快讯：\\n        著名的某岛虾老板已经得到了应有的惩罚———猝死。原因是昨天他去交9万罚款，到工商局才知道，是一只虾罚款9万！当场狂吐白沫，享年38岁。\\u0014\\u0003\\u0014\\u0003\\u0014\\u0003";
-                JObject j = JsonConvert.DeserializeObject<JObject>(s);
-                 Console.WriteLine( JsonConvert.SerializeObject(j));
-               
+                //SpringAopDemo.Run();
+                Uri u = new Uri("http://wiki.corpautohome.com/pages/viewpage.action?pageId=60261125");
+                var n = new Regex(@"[/\\]+(\w+)[/\\]+").Match(u.AbsolutePath);
+                //Console.Write(n.Groups[1].Value);
+
+                long tick = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000000;
+                Console.Write(new DateTime(tick*10000000+ 621355968000000000, DateTimeKind.Utc).ToLocalTime());
 
             }
             catch (Exception ex)
@@ -325,6 +323,60 @@ namespace ConsoleApp
         }
 
 
+
+    }
+
+    public class ReturnValue : Dictionary<string, object>
+    {
+        private ReturnValue(IEqualityComparer<string> comparer) { }
+        public static ReturnValue Instance(object result = null, int returncode = 0, string message = "")
+        {
+            var map = new ReturnValue(StringComparer.OrdinalIgnoreCase) { { "returncode", returncode }, { "message", message } };
+            if (result != null)
+                map.Add("result", result);
+            return map;
+        }
+        public int GetReturnCode()
+        {
+            return (int)this["returncode"];
+        }
+        public ReturnValue SetReturnCode(int value)
+        {
+            this["returncode"] = value;
+            return this;
+        }
+        public string GetMessage()
+        {
+            return (string)this["message"];
+        }
+        public ReturnValue SetMessage(string msg)
+        {
+            this["message"] = msg;
+            return this;
+        }
+        public ReturnValue SetResult(object result)
+        {
+            this["result"] = result;
+            return this;
+        }
+        public ReturnValue SetInterceptLog(object result)
+        {
+            this["intercept_log"] = result;
+            return this;
+        }
+        public object GetResult()
+        {
+            return ContainsKey("result") ? this["result"] : null;
+        }
+        public T GetResult<T>()
+        {
+            return ContainsKey("result") ? (T)this["result"] : default(T);
+        }
+        public ReturnValue RemoveResult()
+        {
+            if (ContainsKey("result")) Remove("result");
+            return this;
+        }
 
     }
     public class SeckillingWinnerContact
