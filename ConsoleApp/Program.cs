@@ -31,16 +31,14 @@ namespace ConsoleApp
     //程序入口类
     class Program
     {
-<<<<<<< HEAD
+
         class CustomData
         {
             public int Name { get; set; }
             public long CreationTime { get; set; }
             public int ThreadNum { get; set; }
         }
-=======
-        //入口方法
->>>>>>> 7e85b76abba6260a9bc691a5f6623bc0206991c5
+
         public static void Main()
         {
 
