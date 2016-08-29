@@ -181,5 +181,21 @@ namespace MyClassLibrary
             else
                 return datetime.ToString("yy-MM-dd");
         }
+
+        public static long ToUnixTimestamp(DateTime datetime)
+        {
+            long seconds = (datetime.ToUniversalTime().Ticks - 621355968000000000) / 10000000;
+            return seconds;
+        }
+
+        public static long ToUnixTimestampOfNow()
+        {
+            return ToUnixTimestamp(DateTime.Now);
+        }
+
+        public static DateTime ToUniversalTime(long unixTimestamp)
+        {
+            return new DateTime(unixTimestamp * 10000000 + 621355968000000000);
+        }
     }
 }

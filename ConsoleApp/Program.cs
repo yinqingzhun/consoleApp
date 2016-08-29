@@ -43,17 +43,16 @@ namespace ConsoleApp
 
         public static void Main()
         {
-            int m = 0;
+           
             try
             {
 
-                //SpringAopDemo.Run();
-                Uri u = new Uri("http://wiki.corpautohome.com/pages/viewpage.action?pageId=60261125");
-                var n = new Regex(@"[/\\]+(\w+)[/\\]+").Match(u.AbsolutePath);
-                //Console.Write(n.Groups[1].Value);
-
-                long tick = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000000;
-                Console.Write(new DateTime(tick*10000000+ 621355968000000000, DateTimeKind.Utc).ToLocalTime());
+                RedisDemo.Run();
+                
+                //var tick = DateTimeHelper.ToUnixTimestampOfNow();
+                //Thread.Sleep(3000);
+                //double seconds = (DateTime.UtcNow - DateTimeHelper.ToUniversalTime((long)tick)).TotalSeconds;
+                //Console.WriteLine(seconds);
 
             }
             catch (Exception ex)
