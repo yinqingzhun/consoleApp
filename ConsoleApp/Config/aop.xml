@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects xmlns="http://www.springframework.net" xmlns:aop="http://www.springframework.net/aop">
+  <!--使用ObjectNameAutoProxyCreator创建代理-->
+  <!--<object id="ProxyCreator" type="Spring.Aop.Framework.AutoProxy.ObjectNameAutoProxyCreator, Spring.Aop">
+    <property name="ObjectNames">
+      <list>
+        <value>English*</value>
+        <value>PortugeseSpeaker</value>
+      </list>
+    </property>
+    <property name="InterceptorNames">
+      <list>
+        <value>debugInterceptor</value>
+      </list>
+    </property>
+  </object>-->
+
+  <object id="debugInterceptor" type="MyClassLibrary.DebugInterceptor, MyClassLibrary"/>
+
+  <object id="EnglishSpeakerOne" type="MyClassLibrary.HelloWorldSpeaker, MyClassLibrary">
+    <property name="Language" value="English"/>
+  </object>
+
+  <object id="EnglishSpeakerTwo" type="MyClassLibrary.HelloWorldSpeaker, MyClassLibrary">
+    <property name="Language" value="English"/>
+  </object>
+
+  <object id="PortugeseSpeaker" type="MyClassLibrary.HelloWorldSpeaker, MyClassLibrary">
+    <property name="Language" value="Portuguese"/>
+  </object>
+
+  <object id="ItalianSpeakerOne" type="MyClassLibrary.HelloWorldSpeaker, MyClassLibrary">
+    <property name="Language" value="Italian"/>
+  </object>
+
+  <object id="SpeachAdvisor" type="Spring.Aop.Support.RegularExpressionMethodPointcutAdvisor, Spring.Aop">
+    <property name="advice" ref="debugInterceptor"/>
+    <property name="patterns">
+      <list>
+        <value>.*Say.*</value>
+      </list>
+    </property>
+  </object>
+  
+  <object id="attributeAdvisor" type="Spring.Aop.Support.AttributeMatchMethodPointcutAdvisor, Spring.Aop">
+    <property name="Attribute" value="MyClassLibrary.ConsoleDebugAttribute, MyClassLibrary"></property>
+    <property name="Advice" ref="debugInterceptor"/>
+  </object>
+  
+  <object id="AdoAdvisor" type="Spring.Aop.Support.RegularExpressionMethodPointcutAdvisor, Spring.Aop">
+    <property name="advice" ref="timingInterceptor"/>
+    <property name="patterns">
+      <list>
+        <value>.*Find.*</value>
+      </list>
+    </property>
+
+  </object>
+
+
+  <object id="cut1" type="Spring.Aop.Support.SdkRegularExpressionMethodPointcut, Spring.Aop">
+    <property name="pattern" value="HelloWorld"/>
+  </object>
+
+  <object id="timingInterceptor" type="MyClassLibrary.TimingInterceptor, MyClassLibrary"/>
+
+  <object id="speakerDao" type="MyClassLibrary.SpeakerDao, MyClassLibrary"/>
+  <!--使用DefaultAdvisorAutoProxyCreator创建代理-->
+  <object id="ProxyCreator" type="Spring.Aop.Framework.AutoProxy.DefaultAdvisorAutoProxyCreator, Spring.Aop"/>
+  <!--使用配置节点创建代理-->
+  <!--<aop:config>
+    <aop:advisor pointcut-ref="cut1" advice-ref="debugInterceptor"></aop:advisor>
+  </aop:config>-->
+  <!--直接创建代理-->
+  <object id="proxyFactoryObject" type="Spring.Aop.Framework.ProxyFactoryObject">
+    <property name="Target">
+      <object type="MyClassLibrary.SpeakerDao, MyClassLibrary" />
+    </property>
+    <property name="InterceptorNames">
+      <list>
+        <value>attributeAdvisor</value>
+      </list>
+    </property>
+  </object>
+
+</objects>

@@ -24,6 +24,9 @@ using System.ComponentModel;
 using MyClassLibrary;
 using System.Web;
 using System.Security.Cryptography;
+using System.Xml.Linq;
+using ConsoleApp.ServiceReference1;
+using System.Configuration;
 
 
 namespace ConsoleApp
@@ -34,7 +37,8 @@ namespace ConsoleApp
 
         class CustomData
         {
-            public int Name { get; set; }
+            public int DataId { get; set; }
+            public string Name { get; set; }
             public long CreationTime { get; set; }
             public int ThreadNum { get; set; }
         }
@@ -46,24 +50,53 @@ namespace ConsoleApp
             {
                 IISHelper.SetWebSitePath("auto", @"G:\deploy\auto");
                 //CopyHelper.Copy("h:\\pic", "h:\\ii");
-                //readMsg();
-                //writeMsg();
-                //HandleMqMsg();
-                //PartitionerDemo.Run();
-                //readJsonString();
+                RedisDemo.Run();
 
-
-
-
-                Console.WriteLine("done");
+                //var tick = DateTimeHelper.ToUnixTimestampOfNow();
+                //Thread.Sleep(3000);
+                //double seconds = (DateTime.UtcNow - DateTimeHelper.ToUniversalTime((long)tick)).TotalSeconds;
+                //Console.WriteLine(seconds);
 
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex);
+                //LogHelper.Error("Error Occurs.", ex, "test");
             }
 
             Console.Read();
+        }
+
+
+
+
+
+        private static void ProcessMessage(string xmlMessage)
+        {
+
+
+            XDocument document = XDocument.Parse(xmlMessage);
+            XElement headerElement = document.Element("Messages").Element("Header");
+            XElement bodyElement = document.Element("Messages").Element("Body");
+            if (bodyElement != null && headerElement != null)
+            {
+                var appId = headerElement.Element("AppId").Value;
+                var entityType = headerElement.Element("EntityType").Value;
+                var operationType = headerElement.Element("OperateType").Value;
+                var entityGuid = bodyElement.Element("EntityId").Value;
+                var operationInfo = bodyElement.Element("OperaterInfo");
+                var operatorId = 0;
+                var operateTime = DateTime.Now;
+                if (operationInfo != null)
+                {
+                    operatorId = Convert.ToInt32(operationInfo.Element("UserId").Value);
+                    operateTime = DateTime.Parse(operationInfo.Element("OperateTime").Value);
+                }
+
+
+
+
+            }
         }
         private static void HandleMqMsg()
         {
@@ -91,34 +124,33 @@ namespace ConsoleApp
             string json = @"{
 'Date':'2015-8-8 15:32:33',
  'CPU':'cpu',
-    'PSU': '500W',
-   'Drives': [
+ 'PSU': '500W',
+ 'Drives': [
       'DVD read/writer'
       /*(broken)*/,
       '500 gigabyte hard drive',
       '200 gigabype hard drive'
     ],
-'Object':{'Name':'ObjectName'}
+'Object':{'Name':'ObjectName'},
+'xx':null
 }";
             string s = string.Format(@"{{""results"":[{0}]}}", json);
-            JObject o = JsonConvert.DeserializeObject<JObject>(s,
+
+            JObject o = JsonConvert.DeserializeObject<JObject>(json,
                 new JsonSerializerSettings()
                 {
                     DateFormatHandling = DateFormatHandling.IsoDateFormat,
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     DefaultValueHandling = DefaultValueHandling.Include
                 });
-            List<NoName> list = new List<NoName>();
-            o["results"].ToList().ForEach(p => list.Add(JsonConvert.DeserializeObject<NoName>(p.ToString())));
-            // JObject j = JObject.FromObject(o);
-            //// j["a"] = "a";
-            // j.Add("oo", "dd");
-            // j.Add("time", DateTime.Now);
-            //List<JObject> list = new List<JObject>();
-            //o.ForEach(p => list.Add(JObject.FromObject(p)));
-            //list.Add(new NoName() { PSU = "p" ,CPU="c" });
-            JArray array = JArray.FromObject(list);
-            Console.WriteLine(JsonConvert.SerializeObject(array, Formatting.Indented));
+
+            //((JObject)o["Object"]).Remove("Name");
+            Console.WriteLine(JsonConvert.SerializeObject(new { result = o }, new IsoDateTimeConverter { DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fff" }));
+            //List<NoName> list = new List<NoName>();
+            //o["results"].ToList().ForEach(p => list.Add(JsonConvert.DeserializeObject<NoName>(p.ToString())));
+            //JArray array = JArray.FromObject(list);
+            //o["Drives"] = new JArray();
+            //Console.WriteLine(JsonConvert.SerializeObject(o,new IsoDateTimeConverter{DateTimeFormat="yyyy-MM-ddTHH:mm:ss.fff"}));
 
         }
         private static JObject ToJObject(object o)
@@ -294,6 +326,60 @@ namespace ConsoleApp
         }
 
 
+
+    }
+
+    public class ReturnValue : Dictionary<string, object>
+    {
+        private ReturnValue(IEqualityComparer<string> comparer) { }
+        public static ReturnValue Instance(object result = null, int returncode = 0, string message = "")
+        {
+            var map = new ReturnValue(StringComparer.OrdinalIgnoreCase) { { "returncode", returncode }, { "message", message } };
+            if (result != null)
+                map.Add("result", result);
+            return map;
+        }
+        public int GetReturnCode()
+        {
+            return (int)this["returncode"];
+        }
+        public ReturnValue SetReturnCode(int value)
+        {
+            this["returncode"] = value;
+            return this;
+        }
+        public string GetMessage()
+        {
+            return (string)this["message"];
+        }
+        public ReturnValue SetMessage(string msg)
+        {
+            this["message"] = msg;
+            return this;
+        }
+        public ReturnValue SetResult(object result)
+        {
+            this["result"] = result;
+            return this;
+        }
+        public ReturnValue SetInterceptLog(object result)
+        {
+            this["intercept_log"] = result;
+            return this;
+        }
+        public object GetResult()
+        {
+            return ContainsKey("result") ? this["result"] : null;
+        }
+        public T GetResult<T>()
+        {
+            return ContainsKey("result") ? (T)this["result"] : default(T);
+        }
+        public ReturnValue RemoveResult()
+        {
+            if (ContainsKey("result")) Remove("result");
+            return this;
+        }
 
     }
     public class SeckillingWinnerContact

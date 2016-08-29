@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using MyClassLibrary;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
@@ -210,7 +211,7 @@ namespace ConsoleApp
                             //设置消息持久化
                             properties = channel.CreateBasicProperties();
                             properties.DeliveryMode = 2;
-                            properties.SetPersistent(true);
+                            properties.Persistent=true;
                         }
 
 
@@ -521,17 +522,7 @@ namespace ConsoleApp
         }
         #endregion
     }
-    public class LogHelper
-    {
-        static LogHelper()
-        {
-            log4net.Config.XmlConfigurator.Configure();
-        }
-        public static void Fatal(string msg, Exception ex = null)
-        {
-            log4net.LogManager.GetLogger("hehe").Fatal(msg + (ex == null ? "" : "异常信息：" + ex.Message));
-        }
-    }
+  
     public enum MqQueueName
     {
         ClubTopic,

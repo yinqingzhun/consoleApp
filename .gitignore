@@ -187,4 +187,6 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+/.vs/config/applicationhost.config
+ModelManifest.xml
 /.vs/config
