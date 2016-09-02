@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MyClassLibrary
 {
@@ -18,61 +19,29 @@ namespace MyClassLibrary
     }
     public class RedisDemo
     {
-        private static void t()
-        {
-            using (var redisManager = new PooledRedisClientManager())
-            using (var redis = redisManager.GetClient())
-            {
-                var redisTodos = redis.As<Todo>();
-                var todo = new Todo
-                {
-                    Id = redisTodos.GetNextSequence(),
-                    Content = "Learn Redis",
-                    Order = 1,
-                };
-
-                redisTodos.Store(todo);
-
-                Todo savedTodo = redisTodos.GetById(todo.Id);
-                savedTodo.Done = true;
-                redisTodos.Store(savedTodo);
-
-                "Updated Todo:".Print();
-                redisTodos.GetAll().ToList().PrintDump();
-
-                redisTodos.DeleteById(savedTodo.Id);
-
-                "No more Todos:".Print();
-                redisTodos.GetAll().ToList().PrintDump();
-            }
-        }
+        static String KEY_REPLY_COUNT = "wz_replytopic_count";
+        static String KEY_REPLY_DURATION = "wz_replytopic_duration";
         public static void Run()
         {
+
+            int MAX_DURATION = 3;//回复累计时间，单位：second
+            int MAX_COUNT = 3;//回复累计数量
+
             ConnectionMultiplexer conn = ConnectionMultiplexer.Connect("localhost:6379");
+            try
             {
-                var client = conn.GetDatabase();
-
-                client.KeyDelete("re");
-                client.KeyDelete("rd");
-                var d = client.SortedSetScore("re", "user0");
-                Console.WriteLine(d == null ? "NaN" : d.ToString());
-
-
-                //producer
                 for (int i = 0; i < 3; i++)
                 {
                     Thread producer = new Thread((o) =>
                     {
+                        var client = conn.GetDatabase();
                         Random r = new Random(i);
                         while (true)
                         {
                             string name = "user" + o;
 
-                            if (client.SortedSetIncrement("re", name, 1) == 1)
-                                client.SortedSetAdd("rd", name, DateTimeHelper.ToUnixTimestampOfNow());
-
-                            d = client.SortedSetScore("re", name);
-                            Console.WriteLine(name + ":" + (d == null ? "NaN" : d.ToString()));
+                            if (client.SortedSetIncrement(KEY_REPLY_COUNT, name, 1) == 1)
+                                client.SortedSetAdd(KEY_REPLY_DURATION, name, DateTimeHelper.ToUnixTimestampOfNow());
 
                             Thread.Sleep(r.Next(3000));
                         }
@@ -80,72 +49,95 @@ namespace MyClassLibrary
                     producer.IsBackground = true;
                     producer.Start(i);
                 }
-
-
-                ////consumer
+                //consumer for monitoring count
                 Thread countConsumer = new Thread(() =>
-                {
-                    while (true)
-                    {
+                 {
+                     while (true)
+                     {
+                         try
+                         {
+                             var client = conn.GetDatabase();
+                             var list = client.SortedSetRangeByRankWithScores(KEY_REPLY_COUNT, 0, 0, Order.Descending);
 
-                        var list = client.SortedSetRangeByRankWithScores("re", 0, 0, Order.Descending);
-
-                        if (list.Count() > 0)
-                        {
-                            var item = list.FirstOrDefault();
-                            if (item.Score >= 3)
-                            {
-                                Console.WriteLine("send mail by count.\t" + string.Format("name:{0}, count={1}", item.Element, item.Score));
-
-                                var trans = client.CreateTransaction();
-                                trans.SortedSetRemoveAsync("re", item.Element);
-                                trans.SortedSetRemoveAsync("rd", item.Element);
-                                trans.Execute();
-
-                                continue;
-                            }
-                        }
-                        Thread.Sleep(1000);
-
-
-                    }
-                });
+                             if (list.Count() > 0)
+                             {
+                                 var item = list.FirstOrDefault();
+                                 if (item.Score >= MAX_COUNT)
+                                 {
+                                     item = DeleteReplyRecord(client, item);
+                                     //todo send mms
+                                     Console.WriteLine("send mail by count.\t" + string.Format("name:{0}, count={1}", item.Element, item.Score));
+                                     continue;
+                                 }
+                             }
+                         }
+                         catch (Exception ex)
+                         {
+                             log4net.LogManager.GetLogger("").Error("违章动态回复数量监控异常。", ex);
+                         }
+                         Thread.Sleep(1000);
+                     }
+                 });
+                countConsumer.IsBackground = true;
                 countConsumer.Start();
 
-
+                //consumer for monitoring duration
                 Thread timeConsumer = new Thread(() =>
                 {
                     while (true)
                     {
-
-                        var list = client.SortedSetRangeByRankWithScores("rd", 0, 0, Order.Descending);
-
-                        if (list.Count() > 0)
+                        try
                         {
-                            var item = list.FirstOrDefault();
-                            var ts = DateTime.UtcNow - DateTimeHelper.ToUniversalTime((long)item.Score);
-                            if (ts.TotalSeconds > 2)
-                            {
-                                Console.WriteLine("send mail by duration.\t" + string.Format("name:{0}, duration={1:f1}s", item.Element, ts.TotalSeconds));
-                                var trans = client.CreateTransaction();
-                                trans.SortedSetRemoveAsync("re", item.Element);
-                                trans.SortedSetRemoveAsync("rd", item.Element);
-                                trans.Execute();
+                            var client = conn.GetDatabase();
+                            var list = client.SortedSetRangeByRankWithScores(KEY_REPLY_DURATION, 0, 0, Order.Ascending);
 
-                                continue;
+                            if (list.Count() > 0)
+                            {
+                                var item = list.FirstOrDefault();
+                                var ts = DateTime.UtcNow - ToUniversalTime((long)item.Score);
+                                if (ts.TotalSeconds > MAX_DURATION)
+                                {
+                                    item = DeleteReplyRecord(client, item);
+                                    //todo send mms
+                                    Console.WriteLine("send mail by duration.\t" + string.Format("name:{0}, duration={1:f1}s", item.Element, ts.TotalSeconds));
+                                    continue;
+                                }
+                                else
+                                {
+                                    Thread.Sleep(TimeSpan.FromSeconds(MAX_DURATION).Subtract(ts));
+                                }
                             }
                         }
-                        Thread.Sleep(1000);
-
-
+                        catch (Exception ex)
+                        {
+                            log4net.LogManager.GetLogger("").Error("违章动态回复时间监控异常。", ex);
+                        }
+                        Thread.Sleep(100);
                     }
                 });
+                countConsumer.IsBackground = true;
                 timeConsumer.Start();
             }
+            catch (Exception ex)
+            {
+                log4net.LogManager.GetLogger("").Error("违章动态回复提醒异常，线程退出。", ex);
+            }
+
+        }
+        public static async void Run2()
+        {
+            ConnectionMultiplexer conn = ConnectionMultiplexer.Connect("localhost:6379");
+            {
+                var client = conn.GetDatabase();
+                Task.WaitAll(client.StringSetAsync("a", 1), client.StringSetAsync("b", 2));
+                string value = await client.StringGetAsync("a");
+                Console.WriteLine("a:" + value);
+                Console.WriteLine("b:" + client.Wait(client.StringGetAsync("b")));
+                
+               
 
 
-
-
+            }
         }
 
         public static void Run1()
@@ -213,7 +205,6 @@ namespace MyClassLibrary
                                     {
                                         trans.QueueCommand(r => r.RemoveItemFromSortedSet("re", item.Key));
                                         trans.QueueCommand(r => r.RemoveItemFromSortedSet("rd", item.Key));
-
                                         trans.Commit();
                                     }
 
@@ -265,7 +256,19 @@ namespace MyClassLibrary
 
 
         }
+        private static SortedSetEntry DeleteReplyRecord(IDatabase client, SortedSetEntry item)
+        {
+            var trans = client.CreateTransaction();
+            trans.SortedSetRemoveAsync(KEY_REPLY_COUNT, item.Element);
+            trans.SortedSetRemoveAsync(KEY_REPLY_DURATION, item.Element);
+            trans.Execute();
+            return item;
+        }
 
+        private static DateTime ToUniversalTime(long unixTimestamp)
+        {
+            return new DateTime(unixTimestamp * 10000000 + 621355968000000000);
+        }
 
     }
     ///// <summary>

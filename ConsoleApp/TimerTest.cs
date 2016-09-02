@@ -64,7 +64,6 @@ namespace ConsoleApp
             Console.WriteLine("Control thread waited {0} times for an event to complete.", numWaits);
             Console.Read();
         }
-        static int i = 0;
         public static void TestRun()
         {
             // Set syncPoint to zero before starting the test 

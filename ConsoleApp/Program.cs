@@ -42,15 +42,16 @@ namespace ConsoleApp
             public long CreationTime { get; set; }
             public int ThreadNum { get; set; }
         }
-
+        
         public static void Main()
         {
 
             try
             {
-                IISHelper.SetWebSitePath("auto", @"G:\deploy\auto");
+
+                RedisDemo.Run2();
                 //CopyHelper.Copy("h:\\pic", "h:\\ii");
-                RedisDemo.Run();
+                //SpringAopDemo.Run();
 
                 //var tick = DateTimeHelper.ToUnixTimestampOfNow();
                 //Thread.Sleep(3000);
