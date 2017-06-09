@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{6293D4E2-A37B-4400-AE3B-D9F3044C38D2}"
 EndProject
@@ -12,6 +12,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyClassLibrary", "MyClassLibrary\MyClassLibrary.csproj", "{96EA9456-37FB-4904-A217-86E80C376EF6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFContext", "EFContext\EFContext.csproj", "{C0C833AB-312F-4A00-A401-4CBE1621622E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTest", "UnitTest", "{1EB35B27-256E-4849-ADD4-9490BE235539}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterfaceProjectForTest", "InterfaceProjectForTest\InterfaceProjectForTest.csproj", "{D55AC801-AE1D-4E61-B68A-7AAC917A8661}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,8 +43,16 @@ Global
 		{C0C833AB-312F-4A00-A401-4CBE1621622E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0C833AB-312F-4A00-A401-4CBE1621622E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0C833AB-312F-4A00-A401-4CBE1621622E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D55AC801-AE1D-4E61-B68A-7AAC917A8661}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D55AC801-AE1D-4E61-B68A-7AAC917A8661}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D55AC801-AE1D-4E61-B68A-7AAC917A8661}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D55AC801-AE1D-4E61-B68A-7AAC917A8661}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8960643C-6296-4C6C-9EEB-06095B10934B} = {1EB35B27-256E-4849-ADD4-9490BE235539}
+		{D55AC801-AE1D-4E61-B68A-7AAC917A8661} = {1EB35B27-256E-4849-ADD4-9490BE235539}
 	EndGlobalSection
 EndGlobal

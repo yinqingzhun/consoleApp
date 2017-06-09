@@ -2,6 +2,7 @@
 using System.Fakes;
 using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using InterfaceProjectForTest;
 
 namespace UnitTestProject
 {
@@ -13,11 +14,11 @@ namespace UnitTestProject
         {
             ActivityService service = new ActivityService();
             bool actual = service.IsExpire();
-            Assert.IsFalse(actual);
+            Assert.IsTrue(actual);
 
             using (ShimsContext.Create())
             {
-                ShimDateTime.NowGet = () => new DateTime(2014, 5, 5);
+                ShimDateTime.NowGet = () => new DateTime(2004, 5, 5);
                 actual = service.IsExpire();
                 Assert.IsFalse(actual);
             }

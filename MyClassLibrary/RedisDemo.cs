@@ -1,5 +1,4 @@
 ﻿using ServiceStack.Redis;
-using ServiceStack.Text;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -30,7 +29,7 @@ namespace MyClassLibrary
             ConnectionMultiplexer conn = ConnectionMultiplexer.Connect("localhost:6379");
             try
             {
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < 2; i++)
                 {
                     Thread producer = new Thread((o) =>
                     {
@@ -42,13 +41,14 @@ namespace MyClassLibrary
 
                             if (client.SortedSetIncrement(KEY_REPLY_COUNT, name, 1) == 1)
                                 client.SortedSetAdd(KEY_REPLY_DURATION, name, DateTimeHelper.ToUnixTimestampOfNow());
-
+                            Console.WriteLine("produce for " + name);
                             Thread.Sleep(r.Next(3000));
                         }
                     });
                     producer.IsBackground = true;
                     producer.Start(i);
                 }
+                Console.WriteLine("producter thread starts.");
                 //consumer for monitoring count
                 Thread countConsumer = new Thread(() =>
                  {
@@ -57,16 +57,16 @@ namespace MyClassLibrary
                          try
                          {
                              var client = conn.GetDatabase();
-                             var list = client.SortedSetRangeByRankWithScores(KEY_REPLY_COUNT, 0, 0, Order.Descending);
+                             var list = client.SortedSetRangeByRankWithScores(KEY_REPLY_COUNT, 0, 0, StackExchange.Redis.Order.Descending);
 
                              if (list.Count() > 0)
                              {
                                  var item = list.FirstOrDefault();
                                  if (item.Score >= MAX_COUNT)
                                  {
-                                     item = DeleteReplyRecord(client, item);
-                                     //todo send mms
-                                     Console.WriteLine("send mail by count.\t" + string.Format("name:{0}, count={1}", item.Element, item.Score));
+                                     if (DeleteReplyRecord(client, item))
+                                         //todo send mms
+                                         Console.WriteLine("send mail by count.\t" + string.Format("name:{0}, count={1}", item.Element, item.Score));
                                      continue;
                                  }
                              }
@@ -80,7 +80,7 @@ namespace MyClassLibrary
                  });
                 countConsumer.IsBackground = true;
                 countConsumer.Start();
-
+                Console.WriteLine("count consumer thread starts.");
                 //consumer for monitoring duration
                 Thread timeConsumer = new Thread(() =>
                 {
@@ -89,7 +89,7 @@ namespace MyClassLibrary
                         try
                         {
                             var client = conn.GetDatabase();
-                            var list = client.SortedSetRangeByRankWithScores(KEY_REPLY_DURATION, 0, 0, Order.Ascending);
+                            var list = client.SortedSetRangeByRankWithScores(KEY_REPLY_DURATION, 0, 0, StackExchange.Redis.Order.Ascending);
 
                             if (list.Count() > 0)
                             {
@@ -97,7 +97,7 @@ namespace MyClassLibrary
                                 var ts = DateTime.UtcNow - ToUniversalTime((long)item.Score);
                                 if (ts.TotalSeconds > MAX_DURATION)
                                 {
-                                    item = DeleteReplyRecord(client, item);
+                                    DeleteReplyRecord(client, item);
                                     //todo send mms
                                     Console.WriteLine("send mail by duration.\t" + string.Format("name:{0}, duration={1:f1}s", item.Element, ts.TotalSeconds));
                                     continue;
@@ -116,7 +116,7 @@ namespace MyClassLibrary
                     }
                 });
                 countConsumer.IsBackground = true;
-                timeConsumer.Start();
+                //timeConsumer.Start();
             }
             catch (Exception ex)
             {
@@ -133,8 +133,8 @@ namespace MyClassLibrary
                 string value = await client.StringGetAsync("a");
                 Console.WriteLine("a:" + value);
                 Console.WriteLine("b:" + client.Wait(client.StringGetAsync("b")));
-                
-               
+
+
 
 
             }
@@ -256,13 +256,18 @@ namespace MyClassLibrary
 
 
         }
-        private static SortedSetEntry DeleteReplyRecord(IDatabase client, SortedSetEntry item)
+        private static bool DeleteReplyRecord(IDatabase client, SortedSetEntry item)
         {
             var trans = client.CreateTransaction();
-            trans.SortedSetRemoveAsync(KEY_REPLY_COUNT, item.Element);
-            trans.SortedSetRemoveAsync(KEY_REPLY_DURATION, item.Element);
-            trans.Execute();
-            return item;
+            var task1 = trans.SortedSetRemoveAsync(KEY_REPLY_COUNT, item.Element);
+            var task2 = trans.SortedSetRemoveAsync(KEY_REPLY_DURATION, item.Element);
+            if (trans.Execute())
+            {
+                trans.WaitAll(task1, task2);
+                return task1.Result && task2.Result;
+            }
+            return false;
+
         }
 
         private static DateTime ToUniversalTime(long unixTimestamp)

@@ -27,29 +27,37 @@ using System.Security.Cryptography;
 using System.Xml.Linq;
 using ConsoleApp.ServiceReference1;
 using System.Configuration;
-
+using Dapper;
+using System.Diagnostics;
 
 namespace ConsoleApp
 {
     //程序入口类
+    [System.Runtime.InteropServices.Guid("2B735DF6-377A-4BBB-B4AB-5C5FBF43CC1C")]
     class Program
     {
 
-        class CustomData
+        class CustomData : ICustomData
         {
             public int DataId { get; set; }
             public string Name { get; set; }
             public long CreationTime { get; set; }
             public int ThreadNum { get; set; }
         }
-        
+        interface ICustomData
+        {
+
+        }
+
         public static void Main()
         {
 
             try
             {
+                RedisDemo.Run();
 
-                RedisDemo.Run2();
+                //AsynDemo.Run();
+                //RedisDemo.Run2();
                 //CopyHelper.Copy("h:\\pic", "h:\\ii");
                 //SpringAopDemo.Run();
 
